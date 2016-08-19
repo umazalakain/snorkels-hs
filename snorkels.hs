@@ -61,14 +61,14 @@ groupFrom :: Board -> Position -> Maybe Group
 groupFrom board pos
     | Map.lookup pos (pieces board) == Nothing    = Nothing
     | Map.lookup pos (pieces board) == Just Stone = Nothing
-    | otherwise = Just Group { positions = let finishGroup :: Board -> Set.Set Position -> Position -> Set.Set Position
-                                               finishGroup board soFar pos
+    | otherwise = Just Group { positions = let finishGroup :: Set.Set Position -> Position -> Set.Set Position
+                                               finishGroup soFar pos
                                                    = Set.foldl (finishGroup board)
                                                                (evaluatedSet)
                                                                (neighbours Set.\\ evaluatedSet)
                                                      where evaluatedSet = Set.insert pos soFar
                                                            neighbours = matchingNeighbours board pos
-                                           in finishGroup board (Set.singleton pos) pos
+                                           in finishGroup (Set.singleton pos) pos
                              , player = let (Snorkel p) = ((pieces board) Map.! pos) in p}
 
 
