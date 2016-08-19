@@ -49,6 +49,30 @@ neighbours :: (Int, Int) -> Position -> Set.Set Position
 neighbours bounds pos = Set.fromList (filter (inBounds bounds) (map ((flip offset) pos) neighbourOffsets))
                         where neighbourOffsets = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
+matchingNeighbours :: Board -> Position -> Set.Set Position
+matchingNeighbours board pos = Set.filter ((== match) . ((flip Map.lookup) pcs)) (neighbours (size board) pos)
+                               where pcs = (pieces board)
+                                     match = Map.lookup pos pcs
+
+-- TODO: Should this return a Maybe Group (to account for the possibility of the
+-- given position on the board being empty) or allow groups of empty positions
+-- too? Such groups might be useful for AI if we ever dare go there.
+groupFrom :: Board -> Position -> Maybe Group
+groupFrom board pos
+    | Map.lookup pos (pieces board) == Nothing    = Nothing
+    | Map.lookup pos (pieces board) == Just Stone = Nothing
+    | otherwise = Just Group { positions = let finishGroup :: Board -> Set.Set Position -> Position -> Set.Set Position
+                                               finishGroup board soFar pos
+                                                   = Set.foldl (finishGroup board)
+                                                               (evaluatedSet)
+                                                               (Set.filter (not . inEvaluatedSet) neighbours)
+                                                     where evaluatedSet = Set.insert pos soFar
+                                                           inEvaluatedSet = ((flip Set.member) evaluatedSet)
+                                                           neighbours = matchingNeighbours board pos
+                                           in finishGroup board (Set.singleton pos) pos
+                             , player = let (Snorkel p) = ((pieces board) Map.! pos) in p}
+
+
 getGroups :: Board -> Set.Set Group
 getGroups _ = Set.empty
 
