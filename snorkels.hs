@@ -65,9 +65,8 @@ groupFrom board pos
                                                finishGroup board soFar pos
                                                    = Set.foldl (finishGroup board)
                                                                (evaluatedSet)
-                                                               (Set.filter (not . inEvaluatedSet) neighbours)
+                                                               (neighbours Set.\\ evaluatedSet)
                                                      where evaluatedSet = Set.insert pos soFar
-                                                           inEvaluatedSet = ((flip Set.member) evaluatedSet)
                                                            neighbours = matchingNeighbours board pos
                                            in finishGroup board (Set.singleton pos) pos
                              , player = let (Snorkel p) = ((pieces board) Map.! pos) in p}
