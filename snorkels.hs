@@ -60,7 +60,7 @@ playersGroups :: Board -> Player -> Set.Set Group
 playersGroups b p = Set.filter ((== p) . player) (getGroups b)
 
 hasLost :: Board -> Player -> Bool
-hasLost b p = any (isTrapped b) (playersGroups b p)
+hasLost b p = any (isTrapped b) (Set.toList (playersGroups b p))
 
 
 sampleBoard :: Board
