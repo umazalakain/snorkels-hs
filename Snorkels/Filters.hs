@@ -1,4 +1,6 @@
 module Snorkels.Filters ( areValid
+                        , allPositions
+                        , areNeighbours
                         , arePieces
                         , areSnorkels
                         , areFromPlayer
@@ -16,8 +18,22 @@ inRange (min, max) check = min <= check && check < max
 inBounds :: (Int, Int) -> Position -> Bool
 inBounds (maxX, maxY) (x, y) = inRange (0, maxX) x && inRange (0, maxY) y
 
+offset :: (Int, Int) -> Position -> Position
+offset (x, y) (x2, y2) = (x+x2, y+y2)
+
+neighbours :: Position -> Set.Set Position
+neighbours position = Set.map (flip offset position) neighbourOffsets
+                      where neighbourOffsets = Set.fromList [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
 areValid :: Board -> Set.Set Position -> Set.Set Position
 areValid board = Set.filter (inBounds (size board))
+
+allPositions :: Board -> Set.Set Position
+allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
+                     where (width, height) = (size board)
+
+areNeighbours :: Board -> Set.Set Position -> Set.Set Position
+areNeighbours board positions = (areValid board) . (Set.difference positions) . (Set.unions) . (map neighbours) $ Set.toList positions
 
 arePieces :: Board -> Set.Set Position -> Set.Set Position
 arePieces board = Set.union (Map.keysSet (pieces board)) . (areValid board)
