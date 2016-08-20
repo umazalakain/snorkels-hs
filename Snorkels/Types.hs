@@ -1,5 +1,5 @@
 module Snorkels.Types ( Position
-                      , Snorkel
+                      , Snorkel (..)
                       , Player
                       , Group (..)
                       , Piece (..)

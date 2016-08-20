@@ -3,24 +3,9 @@ import Data.List
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
+import Snorkels.Types
+import qualified Snorkels.Filters as F
 
-type Position = (Int, Int)
-
-data Snorkel = Green | Purple
-    deriving (Show, Eq)
-
-type Player = Snorkel
-
-data Group = Group { positions :: Set.Set Position
-                   , player :: Player
-                   } deriving (Show, Eq)
-
-data Piece = Snorkel Snorkel | Stone
-    deriving (Show, Eq)
-
-data Board = Board { pieces :: Map.Map Position Piece
-                   , size :: (Int, Int)
-                   } deriving (Eq)
 
 toChar :: Maybe Piece -> Char
 toChar (Just (Snorkel Green)) = 'G'
