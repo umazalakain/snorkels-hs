@@ -54,10 +54,6 @@ groupFrom board pos = growGroup board <$> ((\p -> Group {positions = Set.singlet
 arePieces :: Board -> Set.Set Position -> Set.Set Position
 arePieces board = Set.union (Map.keysSet (pieces board)) . areValid board
 
-isSnorkel :: Piece -> Bool
-isSnorkel Stone = False
-isSnorkel _ = True
-
 areSnorkels :: Board -> Set.Set Position -> Set.Set Position
 areSnorkels board = Set.filter (isSnorkel . getPiece) . arePieces board
                     where getPiece = (pieces board Map.!)

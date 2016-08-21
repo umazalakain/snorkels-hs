@@ -4,6 +4,7 @@ module Snorkels.Types ( Position
                       , Group (..)
                       , Piece (..)
                       , Board (..)
+                      , isSnorkel
                       , getPlayer
                       , getPiece
                       ) where
@@ -25,6 +26,12 @@ data Group = Group { positions :: Set.Set Position
 
 data Piece = Snorkel Snorkel | Stone
     deriving (Show, Eq)
+
+
+-- This is just a shortcut for (isJust . getPlayer)
+isSnorkel :: Piece -> Bool
+isSnorkel Stone = False
+isSnorkel _ = True
 
 
 getPlayer :: Piece -> Maybe Player
