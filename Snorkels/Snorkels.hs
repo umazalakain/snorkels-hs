@@ -21,41 +21,6 @@ instance Show Board where
              [concat [toString (Map.lookup (x, y) (pieces b)) | x <- [0..width]] | y <- [0..height]]
              where (width, height) = (size b)
 
-inRange :: (Int, Int) -> Int -> Bool
-inRange (min, max) check = min <= check && check < max
-
-inBounds :: (Int, Int) -> Position -> Bool
-inBounds (maxX, maxY) (x, y) = inRange (0, maxX) x && inRange (0, maxY) y
-
-offset :: (Int, Int) -> Position -> Position
-offset (x, y) (x2, y2) = (x+x2, y+y2)
-
-neighbours :: (Int, Int) -> Position -> Set.Set Position
-neighbours bounds pos = Set.fromList (filter (inBounds bounds) (map ((flip offset) pos) neighbourOffsets))
-                        where neighbourOffsets = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-matchingNeighbours :: Board -> Position -> Set.Set Position
-matchingNeighbours board pos = Set.filter ((== match) . ((flip Map.lookup) pcs)) (neighbours (size board) pos)
-                               where pcs = (pieces board)
-                                     match = Map.lookup pos pcs
-
--- TODO: Should this return a Maybe Group (to account for the possibility of the
--- given position on the board being empty) or allow groups of empty positions
--- too? Such groups might be useful for AI if we ever dare go there.
-groupFrom :: Board -> Position -> Maybe Group
-groupFrom board pos
-    | Map.lookup pos (pieces board) == Nothing    = Nothing
-    | Map.lookup pos (pieces board) == Just Stone = Nothing
-    | otherwise = Just Group { positions = let finishGroup :: Set.Set Position -> Position -> Set.Set Position
-                                               finishGroup soFar pos
-                                                   = Set.foldl (finishGroup board)
-                                                               (evaluatedSet)
-                                                               (neighbours Set.\\ evaluatedSet)
-                                                     where evaluatedSet = Set.insert pos soFar
-                                                           neighbours = matchingNeighbours board pos
-                                           in finishGroup (Set.singleton pos) pos
-                             , player = let (Snorkel p) = ((pieces board) Map.! pos) in p}
-
 
 getGroups :: Board -> Set.Set Group
 getGroups _ = Set.empty

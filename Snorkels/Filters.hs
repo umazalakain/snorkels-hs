@@ -44,6 +44,12 @@ growGroup board initial
                   initialPositions = positions initial
                   owner = player initial
 
+-- TODO: Should this return a Maybe Group (to account for the possibility of the
+-- given position on the board being empty) or allow groups of empty positions
+-- too? Such groups might be useful for AI if we ever dare go there.
+groupFrom :: Board -> Position -> Maybe Group
+groupFrom board pos = growGroup board <$> ((\p -> Group {positions = Set.singleton pos, player = p}) <$> owner)
+                      where owner = (mfilter (not . isSnorkel) $ getPiece board pos) >>= getPlayer
 
 arePieces :: Board -> Set.Set Position -> Set.Set Position
 arePieces board = Set.union (Map.keysSet (pieces board)) . areValid board
