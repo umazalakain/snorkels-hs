@@ -4,6 +4,8 @@ module Snorkels.Types ( Position
                       , Group (..)
                       , Piece (..)
                       , Board (..)
+                      , getPlayer
+                      , getPiece
                       ) where
 
 import qualified Data.Map.Strict as Map
@@ -24,6 +26,16 @@ data Group = Group { positions :: Set.Set Position
 data Piece = Snorkel Snorkel | Stone
     deriving (Show, Eq)
 
+
+getPlayer :: Piece -> Maybe Player
+getPlayer Stone = Nothing
+getPlayer (Snorkel p) = Just p
+
+
 data Board = Board { pieces :: Map.Map Position Piece
                    , size :: (Int, Int)
                    } deriving (Eq)
+
+
+getPiece :: Board -> Position -> Maybe Piece
+getPiece board pos = Map.lookup pos (pieces board)
