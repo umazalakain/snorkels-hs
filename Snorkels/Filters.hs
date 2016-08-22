@@ -4,9 +4,12 @@ module Snorkels.Filters ( areValid
                         , arePieces
                         , areSnorkels
                         , areFromPlayer
+                        , growGroup
+                        , groupFrom
                         ) where
 
 import Control.Monad
+import Data.Maybe
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -36,6 +39,16 @@ allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
 areNeighbours :: Board -> Set.Set Position -> Set.Set Position
 areNeighbours board positions = areValid board . flip Set.difference positions . Set.unions . map neighbours $ Set.toList positions
 
+arePieces :: Board -> Set.Set Position -> Set.Set Position
+arePieces board = Set.intersection (Map.keysSet (pieces board)) . areValid board
+
+areSnorkels :: Board -> Set.Set Position -> Set.Set Position
+areSnorkels board = Set.filter (maybe False isSnorkel . getPiece board) . arePieces board
+
+areFromPlayer :: Board -> Player -> Set.Set Position -> Set.Set Position
+areFromPlayer board player = Set.filter (maybe False fromPlayer . getPiece board) . areSnorkels board
+                             where fromPlayer = (maybe False (player ==) . getPlayer)
+
 growGroup :: Board -> Group -> Group
 growGroup board initial
             | Set.null new = initial
@@ -44,21 +57,14 @@ growGroup board initial
                   initialPositions = positions initial
                   owner = player initial
 
+
 -- TODO: Should this return a Maybe Group (to account for the possibility of the
 -- given position on the board being empty) or allow groups of empty positions
 -- too? Such groups might be useful for AI if we ever dare go there.
 groupFrom :: Board -> Position -> Maybe Group
 groupFrom board pos = growGroup board <$> ((\p -> Group {positions = Set.singleton pos, player = p}) <$> owner)
-                      where owner = (mfilter (not . isSnorkel) $ getPiece board pos) >>= getPlayer
+                      where owner = (mfilter (isSnorkel) $ getPiece board pos) >>= getPlayer
 
-arePieces :: Board -> Set.Set Position -> Set.Set Position
-arePieces board = Set.union (Map.keysSet (pieces board)) . areValid board
+{-getGroups :: Board -> Set.Set Group-}
+{-getGroups board = Set.map fromJust . Set.filter isJust . Set.map (groupFrom board) $ allPositions board-}
 
-areSnorkels :: Board -> Set.Set Position -> Set.Set Position
-areSnorkels board = Set.filter (isSnorkel . getPiece) . arePieces board
-                    where getPiece = (pieces board Map.!)
-
-areFromPlayer :: Board -> Player -> Set.Set Position -> Set.Set Position
-areFromPlayer board player = Set.filter (fromPlayer . getPiece) . areSnorkels board
-                             where getPiece = (pieces board Map.!)
-                                   fromPlayer = (== (Snorkel player))
