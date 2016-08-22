@@ -1,13 +1,13 @@
-module Snorkels.Filters ( areValid
-                        , allPositions
-                        , areNeighbours
-                        , arePieces
-                        , areSnorkels
-                        , areFromPlayer
-                        , growGroup
-                        , groupFrom
-                        , getGroups
-                        ) where
+module Snorkels.Board ( areValid
+                      , allPositions
+                      , areNeighbours
+                      , arePieces
+                      , areSnorkels
+                      , areFromPlayer
+                      , growGroup
+                      , groupFrom
+                      , getGroups
+                      ) where
 
 import Control.Monad
 import Data.Maybe
