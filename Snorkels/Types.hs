@@ -16,13 +16,13 @@ import qualified Data.Set as Set
 type Position = (Int, Int)
 
 data Snorkel = Green | Purple
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 type Player = Snorkel
 
 data Group = Group { positions :: Set.Set Position
                    , player :: Player
-                   } deriving (Show, Eq)
+                   } deriving (Show, Eq, Ord)
 
 data Piece = Snorkel Snorkel | Stone
     deriving (Show, Eq)
