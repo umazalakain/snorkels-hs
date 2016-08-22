@@ -38,7 +38,11 @@ allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
                      where (width, height) = (size board)
 
 areNeighbours :: Board -> Set.Set Position -> Set.Set Position
-areNeighbours board positions = areValid board . flip Set.difference positions . Set.unions . map neighbours $ Set.toList positions
+areNeighbours board positions = areValid board
+                              . flip Set.difference positions
+                              . Set.unions
+                              . map neighbours
+                              $ Set.toList positions
 
 arePieces :: Board -> Set.Set Position -> Set.Set Position
 arePieces board = Set.intersection (Map.keysSet (pieces board)) . areValid board
@@ -53,18 +57,19 @@ areFromPlayer board player = Set.filter (maybe False fromPlayer . getPiece board
 growGroup :: Board -> Group -> Group
 growGroup board initial
             | Set.null new = initial
-            | otherwise = growGroup board Group {positions = (Set.union initialPositions new), player = owner}
-            where new = areFromPlayer board owner $ areNeighbours board initialPositions
+            | otherwise = growGroup board group
+            where group = Group {positions = (Set.union initialPositions new), player = owner}
+                  new = areFromPlayer board owner $ areNeighbours board initialPositions
                   initialPositions = positions initial
                   owner = player initial
-
 
 -- TODO: Should this return a Maybe Group (to account for the possibility of the
 -- given position on the board being empty) or allow groups of empty positions
 -- too? Such groups might be useful for AI if we ever dare go there.
 groupFrom :: Board -> Position -> Maybe Group
-groupFrom board pos = growGroup board <$> ((\p -> Group {positions = Set.singleton pos, player = p}) <$> owner)
-                      where owner = (mfilter (isSnorkel) $ getPiece board pos) >>= getPlayer
+groupFrom board pos = growGroup board <$> (groupForPlayer <$> owner)
+                      where groupForPlayer = \p -> Group {positions = Set.singleton pos, player = p}
+                            owner = (mfilter isSnorkel $ getPiece board pos) >>= getPlayer
 
 getGroups :: Board -> Set.Set Group
 getGroups board = Set.map fromJust . Set.filter isJust . Set.map (groupFrom board) $ allPositions board
