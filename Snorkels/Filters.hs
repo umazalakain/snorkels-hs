@@ -34,7 +34,7 @@ allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
                      where (width, height) = (size board)
 
 areNeighbours :: Board -> Set.Set Position -> Set.Set Position
-areNeighbours board positions = areValid board . Set.difference positions . Set.unions . map neighbours $ Set.toList positions
+areNeighbours board positions = areValid board . flip Set.difference positions . Set.unions . map neighbours $ Set.toList positions
 
 growGroup :: Board -> Group -> Group
 growGroup board initial
