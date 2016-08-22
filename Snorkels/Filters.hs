@@ -6,6 +6,7 @@ module Snorkels.Filters ( areValid
                         , areFromPlayer
                         , growGroup
                         , groupFrom
+                        , getGroups
                         ) where
 
 import Control.Monad
@@ -65,6 +66,5 @@ groupFrom :: Board -> Position -> Maybe Group
 groupFrom board pos = growGroup board <$> ((\p -> Group {positions = Set.singleton pos, player = p}) <$> owner)
                       where owner = (mfilter (isSnorkel) $ getPiece board pos) >>= getPlayer
 
-{-getGroups :: Board -> Set.Set Group-}
-{-getGroups board = Set.map fromJust . Set.filter isJust . Set.map (groupFrom board) $ allPositions board-}
-
+getGroups :: Board -> Set.Set Group
+getGroups board = Set.map fromJust . Set.filter isJust . Set.map (groupFrom board) $ allPositions board
