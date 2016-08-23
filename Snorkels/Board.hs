@@ -15,6 +15,7 @@ module Snorkels.Board ( areValid
 
 import Control.Monad
 import Data.Maybe
+import Data.Functor
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
