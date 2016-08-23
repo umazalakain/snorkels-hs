@@ -6,8 +6,6 @@ module Snorkels.Types ( Position
                       , Board (..)
                       , isSnorkel
                       , getPlayer
-                      , getPiece
-                      , putPiece
                       , isBlocking
                       ) where
 
@@ -52,10 +50,4 @@ data Board = Board { pieces :: Map.Map Position Piece
                    , currentPlayer :: Player
                    } deriving (Eq)
 
-
-getPiece :: Board -> Position -> Maybe Piece
-getPiece board pos = Map.lookup pos (pieces board)
-
-putPiece :: Board -> Position -> Piece -> Board
-putPiece board pos piece = board { pieces = Map.insert pos piece $ pieces board }
 

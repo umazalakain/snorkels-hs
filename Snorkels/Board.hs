@@ -113,6 +113,14 @@ nextPlayer board = board { currentPlayer = nextPlayer }
                                     $ ps ++ (take 1 ps)
 
 
+getPiece :: Board -> Position -> Maybe Piece
+getPiece board pos = Map.lookup pos (pieces board)
+
+
+putPiece :: Board -> Position -> Piece -> Board
+putPiece board pos piece = board { pieces = Map.insert pos piece $ pieces board }
+
+
 move :: Position -> Board -> Board
 move pos board
         | isValidMove pos board = nextPlayer $ putPiece board pos piece
