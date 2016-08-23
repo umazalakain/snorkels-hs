@@ -1,4 +1,5 @@
 module Snorkels.Board ( areValid
+                      , isValid
                       , allPositions
                       , areNeighbours
                       , arePieces
@@ -9,6 +10,7 @@ module Snorkels.Board ( areValid
                       , getGroups
                       , isTrapped
                       , hasLost
+                      , move
                       ) where
 
 import Control.Monad
@@ -32,8 +34,11 @@ neighbours :: Position -> Set.Set Position
 neighbours position = Set.map (flip offset position) neighbourOffsets
                       where neighbourOffsets = Set.fromList [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
+isValid :: Board -> Position -> Bool
+isValid board = inBounds $ size board
+
 areValid :: Board -> Set.Set Position -> Set.Set Position
-areValid board = Set.filter (inBounds (size board))
+areValid board = Set.filter (isValid board)
 
 allPositions :: Board -> Set.Set Position
 allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
@@ -93,3 +98,23 @@ hasLost board p = or
                 . filter ((== p) . player)
                 . Set.toList
                 $ getGroups board
+
+
+isValidMove :: Position -> Board -> Bool
+isValidMove pos board = isValid board pos && Map.notMember pos (pieces board)
+
+
+nextPlayer :: Board -> Board
+nextPlayer board = board { currentPlayer = nextPlayer }
+                   where ps = players board
+                         nextPlayer = head
+                                    . drop 1
+                                    . dropWhile (/= currentPlayer board)
+                                    $ ps ++ (take 1 ps)
+
+
+move :: Position -> Board -> Board
+move pos board
+        | isValidMove pos board = nextPlayer $ putPiece board pos piece
+        | otherwise = board
+        where piece = Snorkel (currentPlayer board)
