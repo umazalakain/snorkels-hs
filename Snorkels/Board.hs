@@ -74,10 +74,22 @@ groupFrom board pos = growGroup board <$> (groupForPlayer <$> owner)
                             owner = (mfilter isSnorkel $ getPiece board pos) >>= getPlayer
 
 getGroups :: Board -> Set.Set Group
-getGroups board = Set.map fromJust . Set.filter isJust . Set.map (groupFrom board) $ allPositions board
+getGroups board = Set.map fromJust
+                . Set.filter isJust
+                . Set.map (groupFrom board)
+                $ allPositions board
 
 isTrapped :: Board -> Group -> Bool
-isTrapped board group = and $ map (isBlocking (player group) . (getPiece board)) . Set.toList . areNeighbours board . positions $ group
+isTrapped board group = and
+                      . map (isBlocking (player group) . (getPiece board))
+                      . Set.toList
+                      . areNeighbours board
+                      . positions
+                      $ group
 
 hasLost :: Board -> Player -> Bool
-hasLost board p = or . map (isTrapped board) . filter ((== p) . player) . Set.toList $ getGroups board
+hasLost board p = or
+                . map (isTrapped board)
+                . filter ((== p) . player)
+                . Set.toList
+                $ getGroups board
