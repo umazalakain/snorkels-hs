@@ -7,6 +7,7 @@ module Snorkels.Board ( areValid
                       , growGroup
                       , groupFrom
                       , getGroups
+                      , isTrapped
                       ) where
 
 import Control.Monad
@@ -73,3 +74,6 @@ groupFrom board pos = growGroup board <$> (groupForPlayer <$> owner)
 
 getGroups :: Board -> Set.Set Group
 getGroups board = Set.map fromJust . Set.filter isJust . Set.map (groupFrom board) $ allPositions board
+
+isTrapped :: Board -> Group -> Bool
+isTrapped board group = and $ map (isBlocking (player group) . (getPiece board)) . Set.toList . areNeighbours board . positions $ group

@@ -22,14 +22,6 @@ instance Show Board where
              where (width, height) = (size b)
 
 
-isTrapped :: Board -> Group -> Bool
-isTrapped _ _ = True
-
-playersGroups :: Board -> Player -> Set.Set Group
-playersGroups b p = Set.filter ((== p) . player) (B.getGroups b)
-
-hasLost :: Board -> Player -> Bool
-hasLost b p = any (isTrapped b) (Set.toList (playersGroups b p))
 
 
 sampleBoard :: Board
