@@ -29,6 +29,6 @@ sampleBoard = Board { pieces = (Map.fromList [((0, 0), Snorkel Green),
                                               ((0, 1), Snorkel Green),
                                               ((0, 3), Snorkel Green),
                                               ((0, 2), Snorkel Purple),
-                                              ((1, 2), Snorkel Purple),
+                                              ((1, 2), Snorkel Green),
                                               ((2, 4), Stone)])
                     , size = (10, 10)}

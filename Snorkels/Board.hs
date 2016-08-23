@@ -8,6 +8,7 @@ module Snorkels.Board ( areValid
                       , groupFrom
                       , getGroups
                       , isTrapped
+                      , hasLost
                       ) where
 
 import Control.Monad
@@ -77,3 +78,6 @@ getGroups board = Set.map fromJust . Set.filter isJust . Set.map (groupFrom boar
 
 isTrapped :: Board -> Group -> Bool
 isTrapped board group = and $ map (isBlocking (player group) . (getPiece board)) . Set.toList . areNeighbours board . positions $ group
+
+hasLost :: Board -> Player -> Bool
+hasLost board p = or . map (isTrapped board) . filter ((== p) . player) . Set.toList $ getGroups board
