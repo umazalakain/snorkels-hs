@@ -7,6 +7,7 @@ module Snorkels.Types ( Position
                       , isSnorkel
                       , getPlayer
                       , getPiece
+                      , isBlocking
                       ) where
 
 import qualified Data.Map.Strict as Map
@@ -37,6 +38,11 @@ isSnorkel _ = True
 getPlayer :: Piece -> Maybe Player
 getPlayer Stone = Nothing
 getPlayer (Snorkel p) = Just p
+
+
+isBlocking :: Player -> Maybe Piece -> Bool
+isBlocking _ Nothing = False
+isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 
 
 data Board = Board { pieces :: Map.Map Position Piece
