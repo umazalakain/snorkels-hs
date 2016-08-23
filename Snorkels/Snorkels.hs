@@ -1,27 +1,37 @@
+{-# LANGUAGE FlexibleInstances #-}
 import Data.Char
 import Data.List
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
+import qualified System.Console.ANSI as ANSI
+
 import Snorkels.Types
 import qualified Snorkels.Board as B
 
 
-toChar :: Maybe Piece -> Char
-toChar (Just (Snorkel Green)) = 'G'
-toChar (Just (Snorkel Purple)) = 'P'
-toChar (Just Stone) = 'O'
-toChar Nothing = ' '
-
-toString :: Maybe Piece -> String
-toString p = ['[', toChar p, ']']
-
-instance Show Board where
-    show b = intercalate "\n"
-             [concat [toString (Map.lookup (x, y) (pieces b)) | x <- [0..width]] | y <- [0..height]]
-             where (width, height) = (size b)
+class Displayable a where
+    display :: a -> String
 
 
+snorkelColour c = ANSI.setSGRCode [ANSI.SetColor ANSI.Foreground ANSI.Vivid c]
+reset = ANSI.setSGRCode [ANSI.Reset]
+
+instance Displayable (Maybe Piece) where
+    display s = case s of
+        (Just (Snorkel Green)) -> concat [snorkelColour ANSI.Green, "G", reset]
+        (Just (Snorkel Purple)) -> concat [snorkelColour ANSI.Magenta, "P", reset]
+        (Just Stone) -> "O"
+        Nothing -> " "
+
+instance Displayable Board where
+    display b = intercalate "\n"
+                [concat
+                    [concat ["[", display (Map.lookup (x, y) (pieces b)), "]"]
+                        | x <- [0..width-1]]
+                        | y <- [0..height-1]
+                ]
+                where (width, height) = (size b)
 
 
 sampleBoard :: Board
