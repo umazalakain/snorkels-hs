@@ -10,7 +10,8 @@ module Snorkels.Board ( areValid
                       , getGroups
                       , isTrapped
                       , hasLost
-                      , move
+                      , getPiece
+                      , putPiece
                       ) where
 
 import Control.Monad
@@ -101,19 +102,6 @@ hasLost board p = or
                 $ getGroups board
 
 
-isValidMove :: Position -> Board -> Bool
-isValidMove pos board = isValid board pos && Map.notMember pos (pieces board)
-
-
-nextPlayer :: Board -> Board
-nextPlayer board = board { currentPlayer = nextPlayer }
-                   where ps = players board
-                         nextPlayer = head
-                                    . drop 1
-                                    . dropWhile (/= currentPlayer board)
-                                    $ ps ++ (take 1 ps)
-
-
 getPiece :: Board -> Position -> Maybe Piece
 getPiece board pos = Map.lookup pos (pieces board)
 
@@ -122,8 +110,3 @@ putPiece :: Board -> Position -> Piece -> Board
 putPiece board pos piece = board { pieces = Map.insert pos piece $ pieces board }
 
 
-move :: Position -> Board -> Board
-move pos board
-        | isValidMove pos board = nextPlayer $ putPiece board pos piece
-        | otherwise = board
-        where piece = Snorkel (currentPlayer board)

@@ -8,6 +8,7 @@ import qualified System.Console.ANSI as ANSI
 
 import Snorkels.Types
 import qualified Snorkels.Board as B
+import qualified Snorkels.Game as G
 
 
 class Displayable a where
@@ -42,6 +43,4 @@ sampleBoard = Board { pieces = (Map.fromList [((0, 0), Snorkel Green),
                                               ((1, 2), Snorkel Green),
                                               ((2, 4), Stone)])
                     , size = (10, 10)
-                    , players = [Green, Purple]
-                    , currentPlayer = Green
                     }

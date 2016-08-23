@@ -4,6 +4,7 @@ module Snorkels.Types ( Position
                       , Group (..)
                       , Piece (..)
                       , Board (..)
+                      , Game (..)
                       , isSnorkel
                       , getPlayer
                       , isBlocking
@@ -46,8 +47,11 @@ isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 
 data Board = Board { pieces :: Map.Map Position Piece
                    , size :: (Int, Int)
-                   , players :: [Player]
-                   , currentPlayer :: Player
                    } deriving (Eq)
 
 
+data Game = Game { board :: Board
+                 , players :: [Player]
+                 , currentPlayer :: Player
+                 , history :: [Board]
+                 } deriving (Eq)
