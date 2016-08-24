@@ -14,6 +14,7 @@ module Snorkels.Board ( areValid
                       , putPiece
                       ) where
 
+import Control.Lens
 import Control.Monad
 import Data.Maybe
 import Data.Functor
@@ -37,14 +38,14 @@ neighbours position = Set.map (flip offset position) neighbourOffsets
                       where neighbourOffsets = Set.fromList [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 isValid :: Board -> Position -> Bool
-isValid board = inBounds $ size board
+isValid board = inBounds $ board^.size
 
 areValid :: Board -> Set.Set Position -> Set.Set Position
 areValid board = Set.filter (isValid board)
 
 allPositions :: Board -> Set.Set Position
 allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
-                     where (width, height) = (size board)
+                     where (width, height) = board^.size
 
 areNeighbours :: Board -> Set.Set Position -> Set.Set Position
 areNeighbours board positions = areValid board
@@ -54,7 +55,7 @@ areNeighbours board positions = areValid board
                               $ Set.toList positions
 
 arePieces :: Board -> Set.Set Position -> Set.Set Position
-arePieces board = Set.intersection (Map.keysSet (pieces board)) . areValid board
+arePieces board = Set.intersection (Map.keysSet (board^.pieces)) . areValid board
 
 areSnorkels :: Board -> Set.Set Position -> Set.Set Position
 areSnorkels board = Set.filter (maybe False isSnorkel . getPiece board) . arePieces board
@@ -67,17 +68,17 @@ growGroup :: Board -> Group -> Group
 growGroup board initial
             | Set.null new = initial
             | otherwise = growGroup board group
-            where group = Group {positions = (Set.union initialPositions new), player = owner}
+            where group = Group {_positions = (Set.union initialPositions new), _player = owner}
                   new = areFromPlayer board owner $ areNeighbours board initialPositions
-                  initialPositions = positions initial
-                  owner = player initial
+                  initialPositions = initial^.positions
+                  owner = initial^.player
 
 -- TODO: Should this return a Maybe Group (to account for the possibility of the
 -- given position on the board being empty) or allow groups of empty positions
 -- too? Such groups might be useful for AI if we ever dare go there.
 groupFrom :: Board -> Position -> Maybe Group
 groupFrom board pos = growGroup board <$> (groupForPlayer <$> owner)
-                      where groupForPlayer = \p -> Group {positions = Set.singleton pos, player = p}
+                      where groupForPlayer = \p -> Group {_positions = Set.singleton pos, _player = p}
                             owner = (mfilter isSnorkel $ getPiece board pos) >>= getPlayer
 
 getGroups :: Board -> Set.Set Group
@@ -88,25 +89,22 @@ getGroups board = Set.map fromJust
 
 isTrapped :: Board -> Group -> Bool
 isTrapped board group = and
-                      . map (isBlocking (player group) . (getPiece board))
+                      . map (isBlocking (group^.player) . (getPiece board))
                       . Set.toList
                       . areNeighbours board
-                      . positions
-                      $ group
+                      $ group^.positions
 
 hasLost :: Board -> Player -> Bool
 hasLost board p = or
                 . map (isTrapped board)
-                . filter ((== p) . player)
+                . filter (^.player.to (== p))
                 . Set.toList
                 $ getGroups board
 
 
 getPiece :: Board -> Position -> Maybe Piece
-getPiece board pos = Map.lookup pos (pieces board)
+getPiece board pos = Map.lookup pos $ board^.pieces
 
 
 putPiece :: Board -> Position -> Piece -> Board
-putPiece board pos piece = board { pieces = Map.insert pos piece $ pieces board }
-
-
+putPiece board pos piece = board & pieces .~ (board^.pieces & at pos ?~ piece)

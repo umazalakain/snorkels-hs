@@ -1,29 +1,46 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Snorkels.Types ( Position
                       , Snorkel (..)
                       , Player
                       , Group (..)
+                      , positions
+                      , player
                       , Piece (..)
                       , Board (..)
+                      , pieces
+                      , size
                       , Game (..)
+                      , board
+                      , players
+                      , currentPlayer
+                      , history
                       , isSnorkel
                       , getPlayer
                       , isBlocking
                       ) where
 
+import Control.Lens
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
 
 type Position = (Int, Int)
 
+
 data Snorkel = Green | Purple
     deriving (Show, Eq, Ord)
 
+
 type Player = Snorkel
 
-data Group = Group { positions :: Set.Set Position
-                   , player :: Player
+
+data Group = Group { _positions :: Set.Set Position
+                   , _player :: Player
                    } deriving (Show, Eq, Ord)
+
+makeLenses ''Group
+
 
 data Piece = Snorkel Snorkel | Stone
     deriving (Show, Eq)
@@ -45,13 +62,17 @@ isBlocking _ Nothing = False
 isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 
 
-data Board = Board { pieces :: Map.Map Position Piece
-                   , size :: (Int, Int)
+data Board = Board { _pieces :: Map.Map Position Piece
+                   , _size :: (Int, Int)
                    } deriving (Eq)
 
+makeLenses ''Board
 
-data Game = Game { board :: Board
-                 , players :: [Player]
-                 , currentPlayer :: Player
-                 , history :: [Board]
+
+data Game = Game { _board :: Board
+                 , _players :: [Player]
+                 , _currentPlayer :: Player
+                 , _history :: [Board]
                  } deriving (Eq)
+
+makeLenses ''Game

@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+import Control.Lens
 import Data.Char
 import Data.List
 import qualified Data.Map.Strict as Map
@@ -28,19 +29,19 @@ instance Displayable (Maybe Piece) where
 instance Displayable Board where
     display b = intercalate "\n"
                 [concat
-                    [concat ["[", display (Map.lookup (x, y) (pieces b)), "]"]
+                    [concat ["[", display (B.getPiece b (x, y)), "]"]
                         | x <- [0..width-1]]
                         | y <- [0..height-1]
                 ]
-                where (width, height) = (size b)
+                where (width, height) = (b^.size)
 
 
 sampleBoard :: Board
-sampleBoard = Board { pieces = (Map.fromList [((0, 0), Snorkel Green),
-                                              ((0, 1), Snorkel Green),
-                                              ((0, 3), Snorkel Green),
-                                              ((0, 2), Snorkel Purple),
-                                              ((1, 2), Snorkel Green),
-                                              ((2, 4), Stone)])
-                    , size = (10, 10)
+sampleBoard = Board { _pieces = (Map.fromList [((0, 0), Snorkel Green),
+                                               ((0, 1), Snorkel Green),
+                                               ((0, 3), Snorkel Green),
+                                               ((0, 2), Snorkel Purple),
+                                               ((1, 2), Snorkel Green),
+                                               ((2, 4), Stone)])
+                    , _size = (10, 10)
                     }
