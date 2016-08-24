@@ -57,7 +57,7 @@ executable snorkels
   other-extensions:    TemplateHaskell, FlexibleInstances
 
   -- Other library packages from which modules are imported.
-  build-depends:       lens, ansi-terminal
+  build-depends:       lens, ansi-terminal, base >= 4.8, containers >= 0.5
 
   -- Directories containing source files.
   hs-source-dirs:      src

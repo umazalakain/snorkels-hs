@@ -1,4 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
+
+module Snorkels.Snorkels ( display ) where
+
 import Control.Lens
 import Data.Char
 import Data.List
@@ -34,14 +37,3 @@ instance Displayable Board where
                         | y <- [0..height-1]
                 ]
                 where (width, height) = (b^.size)
-
-
-sampleBoard :: Board
-sampleBoard = Board { _pieces = (Map.fromList [((0, 0), Snorkel Green),
-                                               ((0, 1), Snorkel Green),
-                                               ((0, 3), Snorkel Green),
-                                               ((0, 2), Snorkel Purple),
-                                               ((1, 2), Snorkel Green),
-                                               ((2, 4), Stone)])
-                    , _size = (10, 10)
-                    }
