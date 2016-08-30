@@ -21,7 +21,13 @@ sampleBoard = Board { _pieces = (Map.fromList [((0, 0), Snorkel Green),
                     }
 
 
+sampleGame :: Game
+sampleGame = Game { _board = sampleBoard
+                  , _players = [Green, Purple]
+                  , _currentPlayer = Green
+                  , _history = []
+                  }
+
 main :: IO ()
-main = do putStrLn $ display sampleBoard
-          putStrLn $ show (B.hasLost sampleBoard Green)
-          putStrLn $ show (B.hasLost sampleBoard Purple)
+main = do play sampleGame
+          return ()

@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Snorkels.UI ( display ) where
+module Snorkels.UI ( play 
+                   , playTurn
+                   ) where
 
+import Control.Monad.Loops
 import Control.Lens
 import Data.Char
 import Data.List
@@ -37,3 +40,12 @@ instance Displayable Board where
                         | y <- [0..height-1]
                 ]
                 where (width, height) = (b^.size)
+
+
+playTurn :: Game -> IO Game
+playTurn game = do putStrLn $ display $ game^.board
+                   putStr "Please make your move: "
+                   return game
+
+play :: Game -> IO Game
+play game = iterateUntilM (\g -> False) playTurn game
