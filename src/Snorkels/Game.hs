@@ -1,5 +1,7 @@
 module Snorkels.Game ( isValidMove
                      , move
+                     , getSurvivors
+                     , getWinner
                      ) where
 
 import Control.Lens
@@ -14,13 +16,20 @@ isValidMove :: Position -> Game -> Bool
 isValidMove pos game = B.isValid (game^.board) pos && Map.notMember pos (game^.board.pieces)
 
 
+getSurvivors :: Game -> [Player]
+getSurvivors game = case filter hasSurvived $ game^.players of
+                         [] -> [game^.currentPlayer]
+                         s -> s
+                    where hasSurvived = (not . (B.hasLost $ game^.board))
+
+
 nextPlayer :: Game -> Game
 nextPlayer game = game & currentPlayer .~ nextPlayer
-                   where ps = game^.players
+                   where survivors = getSurvivors game
                          nextPlayer = head
                                     . drop 1
                                     . dropWhile (/= game^.currentPlayer)
-                                    $ ps ++ (take 1 ps)
+                                    $ survivors ++ (take 1 survivors)
 
 
 move :: Position -> Game -> Game
@@ -28,3 +37,9 @@ move pos game
         | isValidMove pos game = nextPlayer $ game & board .~ (B.putPiece (game^.board) pos piece)
         | otherwise = game
         where piece = Snorkel (game^.currentPlayer)
+
+
+getWinner :: Game -> Maybe Player
+getWinner game = case getSurvivors game of
+                      (x:[]) -> Just x
+                      _ -> Nothing

@@ -8,6 +8,7 @@ import Control.Monad.Loops
 import Control.Lens
 import Data.Char
 import Data.List
+import Data.Maybe
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -48,4 +49,4 @@ playTurn game = do putStrLn $ display $ game^.board
                    return game
 
 play :: Game -> IO Game
-play game = iterateUntilM (\g -> False) playTurn game
+play game = iterateUntilM (isJust . G.getWinner) playTurn game
