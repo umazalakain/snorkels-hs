@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Snorkels.Snorkels ( display ) where
+module Snorkels.UI ( display ) where
 
 import Control.Lens
 import Data.Char

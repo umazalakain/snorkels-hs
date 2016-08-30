@@ -2,7 +2,7 @@ module Main where
 
 import qualified Data.Map.Strict as Map
 
-import Snorkels.Snorkels
+import Snorkels.UI
 import Snorkels.Types
 import qualified Snorkels.Board as B
 import qualified Snorkels.Game as G
