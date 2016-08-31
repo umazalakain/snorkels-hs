@@ -29,7 +29,7 @@ nextPlayer game = game & currentPlayer .~ nextPlayer
                          nextPlayer = head
                                     . drop 1
                                     . dropWhile (/= game^.currentPlayer)
-                                    $ survivors ++ (take 1 survivors)
+                                    $ cycle survivors
 
 
 move :: Position -> Game -> Game
