@@ -13,7 +13,7 @@ import qualified Snorkels.Board as B
 
 
 isValidMove :: Position -> Game -> Bool
-isValidMove pos game = B.isValid (game^.board) pos && Map.notMember pos (game^.board.pieces)
+isValidMove pos game = elem pos $ B.freePositions $ game^.board
 
 
 getSurvivors :: Game -> [Player]

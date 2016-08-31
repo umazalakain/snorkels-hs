@@ -1,6 +1,7 @@
 module Snorkels.Board ( areValid
                       , isValid
                       , allPositions
+                      , freePositions
                       , areNeighbours
                       , arePieces
                       , areSnorkels
@@ -46,6 +47,11 @@ areValid board = Set.filter (isValid board)
 allPositions :: Board -> Set.Set Position
 allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
                      where (width, height) = board^.size
+
+freePositions :: Board -> Set.Set Position
+freePositions board = Set.filter (flip Map.notMember $ board^.pieces)
+                    . allPositions
+                    $ board
 
 areNeighbours :: Board -> Set.Set Position -> Set.Set Position
 areNeighbours board positions = areValid board
