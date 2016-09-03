@@ -13,12 +13,14 @@ module Snorkels.Board ( areValid
                       , hasLost
                       , getPiece
                       , putPiece
+                      , throwStones
                       ) where
 
 import Control.Lens
 import Control.Monad
 import Data.Maybe
 import Data.Functor
+import System.Random
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -45,7 +47,7 @@ areValid :: Board -> Set.Set Position -> Set.Set Position
 areValid board = Set.filter (isValid board)
 
 allPositions :: Board -> Set.Set Position
-allPositions board = Set.fromList [(x, y) | x <- [0..width], y <- [0..height]]
+allPositions board = Set.fromList [(x, y) | x <- [0..width-1], y <- [0..height-1]]
                      where (width, height) = board^.size
 
 freePositions :: Board -> Set.Set Position
@@ -114,3 +116,13 @@ getPiece board pos = Map.lookup pos $ board^.pieces
 
 putPiece :: Board -> Position -> Piece -> Board
 putPiece board pos piece = board & pieces .~ (board^.pieces & at pos ?~ piece)
+
+
+shufflePositions :: RandomGen g => Set.Set Position -> g -> [Position]
+shufflePositions positions g = map (p !!) $ randomRs (0, length p - 1) g
+                               where p = Set.toList positions
+
+
+throwStones :: RandomGen g => Board -> Int -> g -> Board
+throwStones board n g = foldl throwStone board $ take n $ shufflePositions (freePositions board) g 
+                        where throwStone b p = putPiece b p Stone

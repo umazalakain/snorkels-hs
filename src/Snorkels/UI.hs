@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Snorkels.UI ( play 
+module Snorkels.UI ( GameOptions (..)
+                   , create
+                   , play 
                    , playTurn
                    ) where
 
@@ -9,6 +11,7 @@ import Control.Lens
 import Data.Char
 import Data.List
 import Data.Maybe
+import System.Random
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -43,9 +46,28 @@ instance Displayable Board where
                 where (width, height) = (b^.size)
 
 
+data GameOptions = GameOptions { numStones :: Int
+                               , boardSize :: (Int, Int)
+                               , numPlayers :: Int
+                               } deriving (Eq)
+
+
+create :: GameOptions -> IO Game
+create options = do g <- getStdGen
+                    return Game { _board = B.throwStones board (numStones options) g
+                                , _players = [Green, Purple]
+                                , _currentPlayer = Green
+                                , _history = []
+                                }
+                    where board = Board { _size = boardSize options 
+                                        , _pieces = Map.empty
+                                        }
+
+
 playTurn :: Game -> IO Game
 playTurn game = do putStrLn $ display $ game^.board
-                   putStr "Please make your move: "
+                   putStrLn "Please make your move: "
+                   input <- getLine
                    return game
 
 play :: Game -> IO Game
