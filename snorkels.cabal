@@ -62,7 +62,8 @@ executable snorkels
                        ansi-terminal, 
                        base >= 4.8, 
                        containers >= 0.5,
-                       random
+                       random,
+                       regex-pcre
 
   -- Directories containing source files.
   hs-source-dirs:      src

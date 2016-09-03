@@ -12,6 +12,9 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import System.Random
+import System.IO
+import Text.Printf
+import Text.Regex.PCRE
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -67,11 +70,36 @@ create options = do g <- getStdGen
                                         }
 
 
+data Action = Move Position | Switch | Quit
+
+
+-- TODO: Parse other actions too
+parseAction :: [Char] -> Maybe Action
+parseAction input = let (_, _, _, pos) = input =~ "\\s*(\\d+)\\s+(\\d+)\\s*" :: (String, String, String, [String]) in
+                    -- TODO: This is horrible, and it doesn't check bounds
+                    Just $ Move (read $ pos !! 0 :: Int, read $ pos !! 1 :: Int)
+
+
+-- TODO: Print error message on erroneous input
+readAction :: Game -> IO (Maybe Action)
+readAction game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
+                     hFlush stdout
+                     input <- getLine
+                     return $ parseAction input
+
+
+doAction :: Action -> Game -> Game
+doAction (Move pos) game = G.move pos game
+-- TODO: Define for switch
+-- TODO: Define for quit
+
 playTurn :: Game -> IO Game
 playTurn game = do putStrLn $ display $ game^.board
-                   putStrLn "Please make your move: "
-                   input <- getLine
-                   return game
+                   action <- untilJust $ readAction game
+                   return $ doAction action game
 
 play :: Game -> IO Game
-play game = iterateUntilM (isJust . G.getWinner) playTurn game
+play game = do g <- iterateUntilM (isJust . G.getWinner) playTurn game
+               putStrLn $ display $ g^.board
+               -- TODO: print winner
+               return g
