@@ -33,6 +33,9 @@ instance Displayable (Maybe Piece) where
     display s = case s of
         (Just (Snorkel Green)) -> concat [snorkelColour ANSI.Green, "G", reset]
         (Just (Snorkel Purple)) -> concat [snorkelColour ANSI.Magenta, "P", reset]
+        (Just (Snorkel Red)) -> concat [snorkelColour ANSI.Red, "R", reset]
+        (Just (Snorkel Yellow)) -> concat [snorkelColour ANSI.Yellow, "Y", reset]
+        (Just (Snorkel Cyan)) -> concat [snorkelColour ANSI.Cyan, "C", reset]
         (Just Stone) -> "O"
         Nothing -> " "
 
@@ -55,7 +58,7 @@ data GameOptions = GameOptions { numStones :: Int
 create :: GameOptions -> IO Game
 create options = do g <- getStdGen
                     return Game { _board = B.throwStones board (numStones options) g
-                                , _players = [Green, Purple]
+                                , _players = take (numPlayers options) [Green ..]
                                 , _currentPlayer = Green
                                 , _history = []
                                 }

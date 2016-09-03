@@ -28,8 +28,8 @@ import qualified Data.Set as Set
 type Position = (Int, Int)
 
 
-data Snorkel = Green | Purple
-    deriving (Show, Eq, Ord)
+data Snorkel = Green | Purple | Red | Yellow | Cyan
+    deriving (Show, Eq, Ord, Enum)
 
 
 type Player = Snorkel
