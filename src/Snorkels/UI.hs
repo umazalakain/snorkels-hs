@@ -63,7 +63,6 @@ create options = do g <- getStdGen
                     return Game { _board = B.throwStones board (numStones options) g
                                 , _players = take (numPlayers options) [Green ..]
                                 , _currentPlayer = Green
-                                , _history = []
                                 }
                     where board = Board { _size = boardSize options 
                                         , _pieces = Map.empty

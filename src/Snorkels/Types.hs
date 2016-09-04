@@ -14,7 +14,6 @@ module Snorkels.Types ( Position
                       , board
                       , players
                       , currentPlayer
-                      , history
                       , isSnorkel
                       , getPlayer
                       , isBlocking
@@ -85,9 +84,6 @@ data Game = Game {
                  , _players :: [Player]
                  -- | 'Player' that has to take the next 'Action'
                  , _currentPlayer :: Player
-                 -- FIXME: This shouldn't be here, as we have to save the entire
-                 -- Game in history.
-                 , _history :: [Board]
                  } deriving (Eq)
 
 makeLenses ''Game
