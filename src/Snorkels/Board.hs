@@ -58,63 +58,63 @@ neighbours position = Set.map (flip offset position) neighbourOffsets
                       where neighbourOffsets = Set.fromList [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 -- | 
--- Check if some 'Position' is within the bounds of a 'Board'                            
-isValid :: Board -> Position -> Bool
-isValid board = inBounds $ board^.size
+-- Check if some 'Position' is within the bounds of a board
+isValid :: Game -> Position -> Bool
+isValid game = inBounds $ game^.boardSize
 
 -- | 
--- Check if some 'Position's are within the bounds of a 'Board'                            
-areValid :: Board -> Set.Set Position -> Set.Set Position
-areValid board = Set.filter (isValid board)
+-- Check if some 'Position's are within the bounds of a game
+areValid :: Game -> Set.Set Position -> Set.Set Position
+areValid game = Set.filter (isValid game)
 
 -- | 
--- Get all the 'Position's that are within a 'Board'
-allPositions :: Board -> Set.Set Position
-allPositions board = Set.fromList [(x, y) | x <- [0..width-1], y <- [0..height-1]]
-                     where (width, height) = board^.size
+-- Get all the 'Position's that are within a board
+allPositions :: Game -> Set.Set Position
+allPositions game = Set.fromList [(x, y) | x <- [0..width-1], y <- [0..height-1]]
+                     where (width, height) = game^.boardSize
 
 -- |
--- Get all the 'Position's that are within a 'Board' and that haven't been
--- already occupied.
-freePositions :: Board -> Set.Set Position
-freePositions board = Set.filter (flip Map.notMember $ board^.pieces)
-                    . allPositions
-                    $ board
+-- Get all the 'Position's that are within a board and that haven't been already
+-- occupied.
+freePositions :: Game -> Set.Set Position
+freePositions game = Set.filter (flip Map.notMember $ game^.pieces)
+                   . allPositions
+                   $ game
 
 -- |
--- Get all the neighbour 'Position's of some 'Position's within a 'Board'.
-areNeighbours :: Board -> Set.Set Position -> Set.Set Position
-areNeighbours board positions = areValid board
-                              . flip Set.difference positions
-                              . Set.unions
-                              . map neighbours
-                              $ Set.toList positions
+-- Get all the neighbour 'Position's of some 'Position's within a board.
+areNeighbours :: Game -> Set.Set Position -> Set.Set Position
+areNeighbours game positions = areValid game
+                             . flip Set.difference positions
+                             . Set.unions
+                             . map neighbours
+                             $ Set.toList positions
 
 -- |
--- Filter 'Position's only leaving those which have a 'Piece' in some 'Board'.
-arePieces :: Board -> Set.Set Position -> Set.Set Position
-arePieces board = Set.intersection (Map.keysSet (board^.pieces)) . areValid board
+-- Filter 'Position's only leaving those which have a 'Piece' in some board.
+arePieces :: Game -> Set.Set Position -> Set.Set Position
+arePieces game = Set.intersection (Map.keysSet (game^.pieces)) . areValid game
 
 -- |
--- Filter 'Position's only leaving those which have a 'Snorkel' in some 'Board'
-areSnorkels :: Board -> Set.Set Position -> Set.Set Position
-areSnorkels board = Set.filter (maybe False isSnorkel . getPiece board) . arePieces board
+-- Filter 'Position's only leaving those which have a 'Snorkel' in some board.
+areSnorkels :: Game -> Set.Set Position -> Set.Set Position
+areSnorkels game = Set.filter (maybe False isSnorkel . getPiece game) . arePieces game
 
 -- |
 -- Filter 'Position's only leaving those which have a 'Snorkel' of the given
--- 'Player' in some 'Board'.
-areFromPlayer :: Board -> Player -> Set.Set Position -> Set.Set Position
-areFromPlayer board player = Set.filter (maybe False fromPlayer . getPiece board) . areSnorkels board
-                             where fromPlayer = (maybe False (player ==) . getPlayer)
+-- 'Player' in some board.
+areFromPlayer :: Game -> Player -> Set.Set Position -> Set.Set Position
+areFromPlayer game player = Set.filter (maybe False fromPlayer . getPiece game) . areSnorkels game
+                            where fromPlayer = (maybe False (player ==) . getPlayer)
 
 -- |
 -- Put into a 'Group' 'Position's that are immediate neighbours.
-growGroup :: Board -> Group -> Group
-growGroup board initial
+growGroup :: Game -> Group -> Group
+growGroup game initial
             | Set.null new = initial
-            | otherwise = growGroup board group
+            | otherwise = growGroup game group
             where group = Group {_positions = (Set.union initialPositions new), _player = owner}
-                  new = areFromPlayer board owner $ areNeighbours board initialPositions
+                  new = areFromPlayer game owner $ areNeighbours game initialPositions
                   initialPositions = initial^.positions
                   owner = initial^.player
 
@@ -126,49 +126,49 @@ growGroup board initial
 -- 'Snorkel's from the same 'Player' that are connected, vertically or
 -- horizontally, and by 'Snorkel's of the same 'Player', to the initial
 -- 'Position'
-groupFrom :: Board -> Position -> Maybe Group
-groupFrom board pos = growGroup board <$> (groupForPlayer <$> owner)
-                      where groupForPlayer = \p -> Group {_positions = Set.singleton pos, _player = p}
-                            owner = (mfilter isSnorkel $ getPiece board pos) >>= getPlayer
+groupFrom :: Game -> Position -> Maybe Group
+groupFrom game pos = growGroup game <$> (groupForPlayer <$> owner)
+                     where groupForPlayer = \p -> Group {_positions = Set.singleton pos, _player = p}
+                           owner = (mfilter isSnorkel $ getPiece game pos) >>= getPlayer
 
 -- |
--- Get all the 'Group's on the 'Board'.
-getGroups :: Board -> Set.Set Group
-getGroups board = Set.map fromJust
-                . Set.filter isJust
-                . Set.map (groupFrom board)
-                $ allPositions board
+-- Get all the 'Group's on the board.
+getGroups :: Game -> Set.Set Group
+getGroups game = Set.map fromJust
+               . Set.filter isJust
+               . Set.map (groupFrom game)
+               $ allPositions game
 
 -- |
 -- Check whether a given 'Group' is trapped by having all its surrounding
 -- positions taken by 'Stone's or 'Snorkel's from some other 'Player'.
-isTrapped :: Board -> Group -> Bool
-isTrapped board group = and
-                      . map (isBlocking (group^.player) . (getPiece board))
-                      . Set.toList
-                      . areNeighbours board
-                      $ group^.positions
+isTrapped :: Game -> Group -> Bool
+isTrapped game group = and
+                     . map (isBlocking (group^.player) . (getPiece game))
+                     . Set.toList
+                     . areNeighbours game
+                     $ group^.positions
 
 -- |
 -- Check whether the given 'Player' has one of its snorkel 'Group's trapped.
-hasLost :: Board -> Player -> Bool
-hasLost board p = or
-                . map (isTrapped board)
-                . filter (^.player.to (== p))
-                . Set.toList
-                $ getGroups board
+hasLost :: Game -> Player -> Bool
+hasLost game p = or
+               . map (isTrapped game)
+               . filter (^.player.to (== p))
+               . Set.toList
+               $ getGroups game
 
 
 -- |
--- Get whatever is at the given 'Position' on the 'Board'.
-getPiece :: Board -> Position -> Maybe Piece
-getPiece board pos = Map.lookup pos $ board^.pieces
+-- Get whatever is at the given 'Position' on the board.
+getPiece :: Game -> Position -> Maybe Piece
+getPiece game pos = Map.lookup pos $ game^.pieces
 
 
 -- |
--- Put a 'Piece' at the given 'Position' on the 'Board'.
-putPiece :: Board -> Position -> Piece -> Board
-putPiece board pos piece = board & pieces .~ (board^.pieces & at pos ?~ piece)
+-- Put a 'Piece' at the given 'Position' on the board.
+putPiece :: Game -> Position -> Piece -> Game
+putPiece game pos piece = game & pieces .~ (game^.pieces & at pos ?~ piece)
 
 
 -- |
@@ -179,7 +179,7 @@ shufflePositions positions g = map (p !!) $ randomRs (0, length p - 1) g
 
 
 -- |
--- Randomly throw the given number of 'Stone's on the 'Board'.
-throwStones :: RandomGen g => Board -> Int -> g -> Board
-throwStones board n g = foldl throwStone board $ take n $ shufflePositions (freePositions board) g 
-                        where throwStone b p = putPiece b p Stone
+-- Randomly throw the given number of 'Stone's on the board.
+throwStones :: RandomGen g => Game -> Int -> g -> Game
+throwStones game n g = foldl throwStone game $ take n $ shufflePositions (freePositions game) g 
+                       where throwStone b p = putPiece b p Stone

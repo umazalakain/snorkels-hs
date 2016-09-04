@@ -13,14 +13,14 @@ import qualified Snorkels.Board as B
 
 
 isValidMove :: Position -> Game -> Bool
-isValidMove pos game = elem pos $ B.freePositions $ game^.board
+isValidMove pos game = elem pos $ B.freePositions game
 
 
 getSurvivors :: Game -> [Player]
 getSurvivors game = case filter hasSurvived $ game^.players of
                          [] -> [game^.currentPlayer]
                          s -> s
-                    where hasSurvived = (not . (B.hasLost $ game^.board))
+                    where hasSurvived = (not . (B.hasLost game))
 
 
 nextPlayer :: Game -> Game
@@ -34,7 +34,7 @@ nextPlayer game = game & currentPlayer .~ nextPlayer
 
 move :: Position -> Game -> Game
 move pos game
-        | isValidMove pos game = nextPlayer $ game & board .~ (B.putPiece (game^.board) pos piece)
+        | isValidMove pos game = nextPlayer $ B.putPiece game pos piece
         | otherwise = game
         where piece = Snorkel (game^.currentPlayer)
 

@@ -7,11 +7,9 @@ module Snorkels.Types ( Position
                       , positions
                       , player
                       , Piece (..)
-                      , Board (..)
-                      , pieces
-                      , size
                       , Game (..)
-                      , board
+                      , pieces
+                      , boardSize
                       , players
                       , currentPlayer
                       , isSnorkel
@@ -48,7 +46,7 @@ makeLenses ''Group
 
 
 -- |
--- Any type of piece on the 'Board': either a 'Snorkel' or a 'Stone'
+-- Any type of piece on the board: either a 'Snorkel' or a 'Stone'
 data Piece = Snorkel Snorkel | Stone
     deriving (Show, Eq)
 
@@ -67,27 +65,19 @@ getPlayer (Snorkel p) = Just p
 
 
 -- | 
--- Check whether the contents of a given 'Position' on the 'Board' suppose a
--- block for a given 'Player'. Only 'Stone's and 'Snorkel's from a different
--- 'Player' suppose a block.
+-- Check whether the contents of a given 'Position' on the board suppose a block
+-- for a given 'Player'. Only 'Stone's and 'Snorkel's from a different 'Player'
+-- suppose a block.
 isBlocking :: Player -> Maybe Piece -> Bool
 isBlocking _ Nothing = False
 isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 
 
-data Board = Board { 
-                   -- | Only 'Position's occupied by 'Piece's are here
-                     _pieces :: Map.Map Position Piece
-                   -- | Width and height limits of the board
-                   , _size :: (Int, Int)
-                   } deriving (Eq)
-
-makeLenses ''Board
-
-
 data Game = Game { 
-                 -- | State of the 'Board'
-                   _board :: Board
+                 -- | Only 'Position's occupied by 'Piece's are here
+                   _pieces :: Map.Map Position Piece
+                 -- | Width and height limits of the board
+                 , _boardSize :: (Int, Int)
                  -- | List of 'Player's that didn't 'Quit'
                  , _players :: [Player]
                  -- | 'Player' that plays next

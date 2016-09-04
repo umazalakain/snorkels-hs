@@ -42,31 +42,30 @@ instance Displayable (Maybe Piece) where
         (Just Stone) -> "O"
         Nothing -> " "
 
-instance Displayable Board where
-    display b = intercalate "\n"
+instance Displayable Game where
+    display g = intercalate "\n"
                 [concat
-                    [concat ["[", display (B.getPiece b (x, y)), "]"]
+                    [concat ["[", display (B.getPiece g (x, y)), "]"]
                         | x <- [0..width-1]]
                         | y <- [0..height-1]
                 ]
-                where (width, height) = (b^.size)
+                where (width, height) = (g^.boardSize)
 
 
-data GameOptions = GameOptions { numStones :: Int
-                               , boardSize :: (Int, Int)
-                               , numPlayers :: Int
+data GameOptions = GameOptions { optNumStones :: Int
+                               , optBoardSize :: (Int, Int)
+                               , optNumPlayers :: Int
                                } deriving (Eq)
 
 
 create :: GameOptions -> IO Game
 create options = do g <- getStdGen
-                    return Game { _board = B.throwStones board (numStones options) g
-                                , _players = take (numPlayers options) [Green ..]
-                                , _currentPlayer = Green
-                                }
-                    where board = Board { _size = boardSize options 
-                                        , _pieces = Map.empty
-                                        }
+                    return $ B.throwStones game (optNumStones options) g
+                    where game = Game { _pieces = Map.empty
+                                      , _boardSize = optBoardSize options
+                                      , _players = take (optNumPlayers options) [Green ..]
+                                      , _currentPlayer = Green
+                                      }
 
 
 data Action = Move Position | Switch | Quit
@@ -93,12 +92,12 @@ doAction (Move pos) game = G.move pos game
 -- TODO: Define for quit
 
 playTurn :: Game -> IO Game
-playTurn game = do putStrLn $ display $ game^.board
+playTurn game = do putStrLn $ display game
                    action <- untilJust $ readAction game
                    return $ doAction action game
 
 play :: Game -> IO Game
 play game = do g <- iterateUntilM (isJust . G.getWinner) playTurn game
-               putStrLn $ display $ g^.board
+               putStrLn $ display g
                -- TODO: print winner
                return g
