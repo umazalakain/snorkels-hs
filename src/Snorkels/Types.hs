@@ -47,31 +47,46 @@ data Piece = Snorkel Snorkel | Stone
 
 
 -- This is just a shortcut for (isJust . getPlayer)
+-- | Check whether the 'Piece' is a 'Snorkel'
 isSnorkel :: Piece -> Bool
 isSnorkel Stone = False
 isSnorkel _ = True
 
 
+-- | Get the player owning the 'Piece' or 'Nothing' if the piece is a 'Stone'
 getPlayer :: Piece -> Maybe Player
 getPlayer Stone = Nothing
 getPlayer (Snorkel p) = Just p
 
 
+-- | 
+-- Check whether the contents of a given 'Position' on the 'Board' suppose a
+-- block for a given 'Player'. Only 'Stone's and 'Snorkel's from a different
+-- 'Player' suppose a block.
 isBlocking :: Player -> Maybe Piece -> Bool
 isBlocking _ Nothing = False
 isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 
 
-data Board = Board { _pieces :: Map.Map Position Piece
+data Board = Board { 
+                   -- | Only 'Position's occupied by 'Piece's are here
+                     _pieces :: Map.Map Position Piece
+                   -- | Width and height limits of the board
                    , _size :: (Int, Int)
                    } deriving (Eq)
 
 makeLenses ''Board
 
 
-data Game = Game { _board :: Board
+data Game = Game { 
+                 -- | Current state of the 'Game'
+                   _board :: Board
+                 -- | List of 'Player's that didn't 'Quit'
                  , _players :: [Player]
+                 -- | 'Player' that has to take the next 'Action'
                  , _currentPlayer :: Player
+                 -- FIXME: This shouldn't be here, as we have to save the entire
+                 -- Game in history.
                  , _history :: [Board]
                  } deriving (Eq)
 
