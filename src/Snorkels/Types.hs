@@ -24,16 +24,22 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
 
+-- | Some (x, y) coordinate on the board
 type Position = (Int, Int)
 
 
+-- | Some player's pieces' color
 data Snorkel = Green | Purple | Red | Yellow | Cyan
     deriving (Show, Eq, Ord, Enum)
 
 
+-- | Each player has a distinctive color
 type Player = Snorkel
 
 
+-- | 
+-- An horizontally or vertically connected group of 'Snorkel's that belong to
+-- the same 'Player'
 data Group = Group { _positions :: Set.Set Position
                    , _player :: Player
                    } deriving (Show, Eq, Ord)
@@ -41,6 +47,8 @@ data Group = Group { _positions :: Set.Set Position
 makeLenses ''Group
 
 
+-- |
+-- Any type of piece on the 'Board': either a 'Snorkel' or a 'Stone'
 data Piece = Snorkel Snorkel | Stone
     deriving (Show, Eq)
 
@@ -78,11 +86,11 @@ makeLenses ''Board
 
 
 data Game = Game { 
-                 -- | Current state of the 'Game'
+                 -- | State of the 'Board'
                    _board :: Board
                  -- | List of 'Player's that didn't 'Quit'
                  , _players :: [Player]
-                 -- | 'Player' that has to take the next 'Action'
+                 -- | 'Player' that plays next
                  , _currentPlayer :: Player
                  } deriving (Eq)
 

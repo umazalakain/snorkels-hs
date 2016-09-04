@@ -1,16 +1,22 @@
-module Snorkels.Board ( areValid
-                      , isValid
+module Snorkels.Board ( 
+                      -- * Checkers
+                        isValid
+                      , isTrapped
+                      , hasLost
+                      -- * Generators
+                      , neighbours
                       , allPositions
                       , freePositions
+                      , growGroup
+                      , groupFrom
+                      , getGroups
+                      -- * Filters
+                      , areValid
                       , areNeighbours
                       , arePieces
                       , areSnorkels
                       , areFromPlayer
-                      , growGroup
-                      , groupFrom
-                      , getGroups
-                      , isTrapped
-                      , hasLost
+                      -- * Manipulation
                       , getPiece
                       , putPiece
                       , throwStones
