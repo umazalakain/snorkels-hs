@@ -1,5 +1,4 @@
 module Snorkels.Game ( Action (..)
-                     , validateAction
                      , doAction
                      , move
                      , getSurvivors
@@ -46,17 +45,10 @@ getWinner game = case getSurvivors game of
 data Action = Move Position | Switch Player | Quit
 
 
--- Maybe [Char] should be some type of exception
-validateAction :: Action -> Game -> Maybe [Char]
-validateAction (Move pos) game
-        | elem pos $ B.freePositions game = Nothing
-        | otherwise = Just "Cannot place a snorkel there."
--- TODO: Define for switch
--- TODO: Define for quit
-
-
-doAction :: Action -> Game -> Game
-doAction (Move pos) game = move pos game
+doAction :: Action -> Game -> Either String Game
+doAction (Move pos) game
+        | elem pos $ B.freePositions game = Right $ move pos game
+        | otherwise = Left "Cannot place a snorkel there."
 -- TODO: Define for switch
 -- TODO: Define for quit
 

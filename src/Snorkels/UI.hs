@@ -88,10 +88,10 @@ readAction game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
 playTurn :: Game -> IO Game
 playTurn game = do putStrLn $ display game
                    action <- untilJust $ readAction game
-                   case G.validateAction action game of
-                        Nothing -> return $ G.doAction action game
-                        Just message -> do putStrLn message
+                   case G.doAction action game of
+                        Left message -> do putStrLn message
                                            return game
+                        Right game -> return game
 
 
 play :: Game -> IO Game
