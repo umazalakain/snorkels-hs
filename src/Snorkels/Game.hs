@@ -1,4 +1,6 @@
-module Snorkels.Game ( isValidMove
+module Snorkels.Game ( Action (..)
+                     , validateAction
+                     , doAction
                      , move
                      , getSurvivors
                      , getWinner
@@ -10,10 +12,6 @@ import qualified Data.Set as Set
 
 import Snorkels.Types
 import qualified Snorkels.Board as B
-
-
-isValidMove :: Position -> Game -> Bool
-isValidMove pos game = elem pos $ B.freePositions game
 
 
 getSurvivors :: Game -> [Player]
@@ -33,13 +31,35 @@ nextPlayer game = game & currentPlayer .~ nextPlayer
 
 
 move :: Position -> Game -> Game
-move pos game
-        | isValidMove pos game = nextPlayer $ B.putPiece game pos piece
-        | otherwise = game
-        where piece = Snorkel (game^.currentPlayer)
+move pos game = nextPlayer $ B.putPiece game pos piece
+                where piece = Snorkel (game^.currentPlayer)
 
 
 getWinner :: Game -> Maybe Player
 getWinner game = case getSurvivors game of
                       (x:[]) -> Just x
                       _ -> Nothing
+
+
+
+
+data Action = Move Position | Switch Player | Quit
+
+
+-- Maybe [Char] should be some type of exception
+validateAction :: Action -> Game -> Maybe [Char]
+validateAction (Move pos) game
+        | elem pos $ B.freePositions game = Nothing
+        | otherwise = Just "Cannot place a snorkel there."
+-- TODO: Define for switch
+-- TODO: Define for quit
+
+
+doAction :: Action -> Game -> Game
+doAction (Move pos) game = move pos game
+-- TODO: Define for switch
+-- TODO: Define for quit
+
+
+{-getNumberOfMoves :: Game -> Int-}
+{-getNumberOfMoves -}
