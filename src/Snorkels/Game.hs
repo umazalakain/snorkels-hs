@@ -2,10 +2,12 @@ module Snorkels.Game ( Action (..)
                      , doAction
                      , move
                      , getSurvivors
+                     , getNextPlayer
                      , getWinner
                      ) where
 
 import Control.Lens
+import Data.Maybe
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -20,18 +22,23 @@ getSurvivors game = case filter hasSurvived $ game^.players of
                     where hasSurvived = (not . (B.hasLost game))
 
 
-nextPlayer :: Game -> Game
-nextPlayer game = game & currentPlayer .~ nextPlayer
-                   where survivors = getSurvivors game
-                         nextPlayer = head
-                                    . drop 1
-                                    . dropWhile (/= game^.currentPlayer)
-                                    $ cycle survivors
+getNextPlayer :: Game -> Maybe Player
+getNextPlayer game = listToMaybe
+                   . drop 1
+                   . dropWhile (/= game^.currentPlayer)
+                   $ cycle
+                   $ getSurvivors game
 
 
-move :: Position -> Game -> Game
-move pos game = nextPlayer $ B.putPiece game pos piece
-                where piece = Snorkel (game^.currentPlayer)
+move :: Position -> Game -> Either String Game
+move pos game
+    | not validPosition = Left "Cannot place a snorkel there."
+    | not survivors = Left "No surviving players left."
+    | otherwise = Right $ nextPlayer . putSnorkel $ game
+    where validPosition = elem pos $ B.freePositions game
+          survivors = isJust $ getNextPlayer game
+          putSnorkel g = B.putPiece g pos $ Snorkel (game^.currentPlayer)
+          nextPlayer g = g & currentPlayer .~ (fromJust $ getNextPlayer g)
 
 
 getWinner :: Game -> Maybe Player
@@ -46,9 +53,7 @@ data Action = Move Position | Switch Player | Quit
 
 
 doAction :: Action -> Game -> Either String Game
-doAction (Move pos) game
-        | elem pos $ B.freePositions game = Right $ move pos game
-        | otherwise = Left "Cannot place a snorkel there."
+doAction (Move pos) game = move pos game
 -- TODO: Define for switch
 -- TODO: Define for quit
 
