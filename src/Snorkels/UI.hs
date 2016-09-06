@@ -48,7 +48,7 @@ instance Displayable Game where
                         | x <- [0..width-1]]
                         | y <- [0..height-1]
                 ]
-                where (width, height) = (g^.boardSize)
+                where (width, height) = g^.boardSize
 
 
 data GameOptions = GameOptions { optNumStones :: Int
@@ -70,7 +70,7 @@ create options = do g <- getStdGen
 
 
 -- TODO: Parse other actions too
-parseAction :: [Char] -> Maybe G.Action
+parseAction :: String -> Maybe G.Action
 parseAction input = let (_, _, _, pos) = input =~ "\\s*(\\d+)\\s+(\\d+)\\s*" :: (String, String, String, [String]) in
                     -- TODO: This is horrible, and it doesn't check bounds
                     Just $ G.Move (read $ pos !! 0 :: Int, read $ pos !! 1 :: Int)

@@ -54,7 +54,7 @@ offset (x, y) (x2, y2) = (x+x2, y+y2)
 -- Given a 'Position', get the 'Set.Set' of 'Position's that are immediatelly
 -- above, under, to the left, or to the right.
 neighbours :: Position -> Set.Set Position
-neighbours position = Set.map (flip offset position) neighbourOffsets
+neighbours position = Set.map (`offset` position) neighbourOffsets
                       where neighbourOffsets = Set.fromList [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 -- | 
@@ -105,7 +105,7 @@ areSnorkels game = Set.filter (maybe False isSnorkel . getPiece game) . arePiece
 -- 'Player' in some board.
 areFromPlayer :: Game -> Player -> Set.Set Position -> Set.Set Position
 areFromPlayer game player = Set.filter (maybe False fromPlayer . getPiece game) . areSnorkels game
-                            where fromPlayer = (maybe False (player ==) . getPlayer)
+                            where fromPlayer = maybe False (player ==) . getPlayer
 
 -- |
 -- Put into a 'Group' 'Position's that are immediate neighbours.
@@ -113,7 +113,7 @@ growGroup :: Game -> Group -> Group
 growGroup game initial
             | Set.null new = initial
             | otherwise = growGroup game group
-            where group = Group {_positions = (Set.union initialPositions new), _player = owner}
+            where group = Group {_positions = Set.union initialPositions new, _player = owner}
                   new = areFromPlayer game owner $ areNeighbours game initialPositions
                   initialPositions = initial^.positions
                   owner = initial^.player
@@ -128,8 +128,8 @@ growGroup game initial
 -- 'Position'
 groupFrom :: Game -> Position -> Maybe Group
 groupFrom game pos = growGroup game <$> (groupForPlayer <$> owner)
-                     where groupForPlayer = \p -> Group {_positions = Set.singleton pos, _player = p}
-                           owner = (mfilter isSnorkel $ getPiece game pos) >>= getPlayer
+                     where groupForPlayer p = Group {_positions = Set.singleton pos, _player = p}
+                           owner = mfilter isSnorkel (getPiece game pos) >>= getPlayer
 
 -- |
 -- Get all the 'Group's on the board.
@@ -143,20 +143,14 @@ getGroups game = Set.map fromJust
 -- Check whether a given 'Group' is trapped by having all its surrounding
 -- positions taken by 'Stone's or 'Snorkel's from some other 'Player'.
 isTrapped :: Game -> Group -> Bool
-isTrapped game group = and
-                     . map (isBlocking (group^.player) . (getPiece game))
-                     . Set.toList
-                     . areNeighbours game
-                     $ group^.positions
+isTrapped game group = all (isBlocking (group^.player) . getPiece game)
+                           (Set.toList $ areNeighbours game group^.positions)
 
 -- |
 -- Check whether the given 'Player' has one of its snorkel 'Group's trapped.
 hasLost :: Game -> Player -> Bool
-hasLost game p = or
-               . map (isTrapped game)
-               . filter (^.player.to (== p))
-               . Set.toList
-               $ getGroups game
+hasLost game p = any (isTrapped game)
+                     (filter (^.player.to (== p)) $ Set.toList $ getGroups game)
 
 
 -- |

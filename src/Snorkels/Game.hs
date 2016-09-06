@@ -20,7 +20,7 @@ getSurvivors :: Game -> [Player]
 getSurvivors game = case filter hasSurvived $ game^.players of
                          [] -> [game^.currentPlayer]
                          s -> s
-                    where hasSurvived = (not . (B.hasLost game))
+                    where hasSurvived = not . (B.hasLost game)
 
 
 getNextPlayer :: Game -> Maybe Player
@@ -39,12 +39,12 @@ move pos game
     where validPosition = elem pos $ B.freePositions game
           survivors = isJust $ getNextPlayer game
           putSnorkel g = B.putPiece g pos $ Snorkel (game^.currentPlayer)
-          nextPlayer g = g & currentPlayer .~ (fromJust $ getNextPlayer g)
+          nextPlayer g = g & currentPlayer .~ fromJust (getNextPlayer g)
 
 
 getWinner :: Game -> Maybe Player
 getWinner game = case getSurvivors game of
-                      (x:[]) -> Just x
+                      [x] -> Just x
                       _ -> Nothing
 
 
@@ -56,7 +56,7 @@ data Action = Move Position | Switch Player | Quit
 
 
 doAction :: Action -> Game -> Either String Game
-doAction (Move pos) game = move pos game
+doAction (Move pos) = move pos
 -- TODO: Define for switch
 -- TODO: Define for quit
 
