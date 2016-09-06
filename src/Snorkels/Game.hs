@@ -4,6 +4,7 @@ module Snorkels.Game ( Action (..)
                      , getSurvivors
                      , getNextPlayer
                      , getWinner
+                     , hasFinished
                      ) where
 
 import Control.Lens
@@ -47,6 +48,8 @@ getWinner game = case getSurvivors game of
                       _ -> Nothing
 
 
+hasFinished :: Game -> Bool
+hasFinished = isJust . getWinner
 
 
 data Action = Move Position | Switch Player | Quit

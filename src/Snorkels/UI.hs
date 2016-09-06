@@ -17,7 +17,6 @@ import Text.Printf
 import Text.Regex.PCRE
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-
 import qualified System.Console.ANSI as ANSI
 
 import Snorkels.Types
@@ -85,17 +84,31 @@ readAction game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
                      return $ parseAction input
 
 
+-- | Prompt the player for an action until the action is valid, then do it
 playTurn :: Game -> IO Game
 playTurn game = do putStrLn $ display game
                    action <- untilJust $ readAction game
                    case G.doAction action game of
                         Left message -> do putStrLn message
-                                           return game
+                                           playTurn game
                         Right game -> return game
 
 
+-- |
+-- A cycle ends when the next player comes before the current one in the
+-- player's list
+playCycle :: Game -> IO Game
+playCycle game = do g <- playTurn game
+                    if G.hasFinished g || (game^.currentPlayer > g^.currentPlayer)
+                    then return g
+                    else playCycle g
+
+
 play :: Game -> IO Game
-play game = do g <- iterateUntilM (isJust . G.getWinner) playTurn game
+play game = do g <- playCycle game
+               -- We can now ask for color switches
+               g <- iterateUntilM G.hasFinished playCycle g
+               -- The game has now finished
                putStrLn $ display g
                -- TODO: print winner
                return g
