@@ -15,6 +15,7 @@ import System.Random
 import System.IO
 import Text.Printf
 import Text.Regex.PCRE
+import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified System.Console.ANSI as ANSI
@@ -64,9 +65,8 @@ create options = do g <- getStdGen
                                       , _boardSize = optBoardSize options
                                       , _players = take (optNumPlayers options) [Green ..]
                                       , _currentPlayer = Green
+                                      , _switches = Bimap.empty
                                       }
-
-
 
 
 -- TODO: Parse other actions too

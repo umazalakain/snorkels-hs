@@ -12,12 +12,14 @@ module Snorkels.Types ( Position
                       , boardSize
                       , players
                       , currentPlayer
+                      , switches
                       , isSnorkel
                       , getPlayer
                       , isBlocking
                       ) where
 
 import Control.Lens
+import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -82,6 +84,8 @@ data Game = Game {
                  , _players :: [Player]
                  -- | 'Player' that plays next
                  , _currentPlayer :: Player
+                 -- | Map of what each player chooses to be when asked to switch
+                 , _switches :: Bimap.Bimap Player Player
                  } deriving (Eq)
 
 makeLenses ''Game

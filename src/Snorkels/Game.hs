@@ -9,6 +9,7 @@ module Snorkels.Game ( Action (..)
 
 import Control.Lens
 import Data.Maybe
+import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -20,7 +21,7 @@ getSurvivors :: Game -> [Player]
 getSurvivors game = case filter hasSurvived $ game^.players of
                          [] -> [game^.currentPlayer]
                          s -> s
-                    where hasSurvived = not . (B.hasLost game)
+                    where hasSurvived = not . B.hasLost game
 
 
 getNextPlayer :: Game -> Maybe Player
@@ -42,6 +43,12 @@ move pos game
           nextPlayer g = g & currentPlayer .~ fromJust (getNextPlayer g)
 
 
+switch :: Player -> Game -> Either String Game
+switch player game
+    | not validSwitch = Left "Cannot switch to such color."
+    | otherwise = Right $ game & switches .~ Bimap.insert (game^.currentPlayer) player (game^.switches)
+    where validSwitch = Bimap.notMemberR player $ game^.switches
+
 getWinner :: Game -> Maybe Player
 getWinner game = case getSurvivors game of
                       [x] -> Just x
@@ -57,9 +64,5 @@ data Action = Move Position | Switch Player | Quit
 
 doAction :: Action -> Game -> Either String Game
 doAction (Move pos) = move pos
--- TODO: Define for switch
+doAction (Switch player) = switch player
 -- TODO: Define for quit
-
-
-{-getNumberOfMoves :: Game -> Int-}
-{-getNumberOfMoves -}

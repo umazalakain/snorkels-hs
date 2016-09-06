@@ -144,7 +144,7 @@ getGroups game = Set.map fromJust
 -- positions taken by 'Stone's or 'Snorkel's from some other 'Player'.
 isTrapped :: Game -> Group -> Bool
 isTrapped game group = all (isBlocking (group^.player) . getPiece game)
-                           (Set.toList $ areNeighbours game group^.positions)
+                           (Set.toList $ areNeighbours game $ group^.positions)
 
 -- |
 -- Check whether the given 'Player' has one of its snorkel 'Group's trapped.

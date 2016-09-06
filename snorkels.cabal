@@ -63,7 +63,8 @@ executable snorkels
                        random >=1.1 && <1.2, 
                        regex-pcre >=0.94 && <0.95, 
                        containers >=0.5 && <0.6, 
-                       ansi-terminal >=0.6 && <0.7
+                       ansi-terminal >=0.6 && <0.7,
+                       bimap >=0.3.2 && <0.3.3
 
   -- Directories containing source files.
   hs-source-dirs:      src
@@ -89,7 +90,8 @@ library
                        random >=1.1 && <1.2, 
                        regex-pcre >=0.94 && <0.95, 
                        containers >=0.5 && <0.6, 
-                       ansi-terminal >=0.6 && <0.7
+                       ansi-terminal >=0.6 && <0.7,
+                       bimap >=0.3.2 && <0.3.3
   
   -- Directories containing source files.
   hs-source-dirs:      src
