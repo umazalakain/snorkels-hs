@@ -8,7 +8,7 @@ module Snorkels.Game ( Action (..)
                      ) where
 
 import Control.Lens
-import Data.Maybe
+import Data.Maybe (isJust, fromJust, listToMaybe)
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set

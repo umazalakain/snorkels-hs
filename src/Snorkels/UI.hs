@@ -6,14 +6,13 @@ module Snorkels.UI ( GameOptions (..)
                    , playTurn
                    ) where
 
-import Control.Monad.Loops
+import Control.Monad.Loops (iterateUntilM)
 import Control.Lens
 import Data.Char
 import Data.List
-import Data.Maybe
-import System.Random
-import System.IO
-import Text.Printf
+import System.Random (getStdGen)
+import System.IO (hFlush, stdout)
+import Text.Printf (printf)
 import Text.Parsec (parse)
 import Text.Parsec.Char (string, spaces)
 import Text.Parsec.String (Parser)

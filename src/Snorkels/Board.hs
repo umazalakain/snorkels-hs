@@ -23,10 +23,9 @@ module Snorkels.Board (
                       ) where
 
 import Control.Lens
-import Control.Monad
+import Control.Monad (mfilter)
 import Data.Maybe
-import Data.Functor
-import System.Random
+import System.Random (RandomGen, randomRs)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
