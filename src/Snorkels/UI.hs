@@ -75,9 +75,9 @@ create options = do g <- getStdGen
 actionParser :: Parser G.Action
 actionParser = do string "move"
                   spaces
-                  x <- Number.nat
+                  x <- nat
                   spaces
-                  y <- Number.nat
+                  y <- nat
                   spaces
                   return $ G.Move (x, y)
 
