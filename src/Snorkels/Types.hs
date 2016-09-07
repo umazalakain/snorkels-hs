@@ -30,7 +30,7 @@ type Position = (Int, Int)
 
 -- | Some player's pieces' color
 data Snorkel = Green | Purple | Red | Yellow | Cyan
-    deriving (Show, Eq, Ord, Enum)
+    deriving (Show, Eq, Ord, Enum, Read)
 
 
 -- | Each player has a distinctive color

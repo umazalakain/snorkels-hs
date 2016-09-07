@@ -3,7 +3,6 @@
 module Snorkels.UI ( GameOptions (..)
                    , create
                    , play 
-                   , playTurn
                    ) where
 
 import Control.Monad.Loops (iterateUntilM)
@@ -13,9 +12,10 @@ import Data.List
 import System.Random (getStdGen)
 import System.IO (hFlush, stdout)
 import Text.Printf (printf)
-import Text.Parsec (parse)
+import Text.Parsec (parse, (<|>))
 import Text.Parsec.Char (string, spaces)
 import Text.Parsec.String (Parser)
+import Text.Parsec.Combinator (choice)
 import Text.ParserCombinators.Parsec.Number (nat)
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
@@ -71,50 +71,68 @@ create options = do g <- getStdGen
                                       }
 
 
-actionParser :: Parser G.Action
-actionParser = do string "move"
-                  spaces
-                  x <- nat
-                  spaces
-                  y <- nat
-                  spaces
-                  return $ G.Move (x, y)
+moveParser :: Parser G.Action
+moveParser = do spaces
+                x <- nat
+                spaces
+                y <- nat
+                spaces
+                return $ G.Move (x, y)
 
 
-readAction :: Game -> IO G.Action
-readAction game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
-                     hFlush stdout
-                     input <- getLine
-                     case parse actionParser "" input of
-                       Left parseError -> do print parseError
-                                             readAction game
-                       Right action -> return action
+switchParser :: Parser G.Action
+switchParser = do spaces
+                  player <- choice $ map (string . show) [Green ..]
+                  spaces
+                  return $ G.Switch (read player :: Player)  -- Hacky hack
+
+
+readAction :: Parser G.Action -> Game -> IO G.Action
+readAction parser game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
+                            hFlush stdout
+                            input <- getLine
+                            case parse parser "" input of
+                              Left parseError -> do print parseError
+                                                    readAction parser game
+                              Right action -> return action
+
+
+playSwitch :: Game -> IO Game
+playSwitch game = do putStrLn "Choose the player you want to switch to"
+                     action <- readAction switchParser game
+                     case G.doAction action game of
+                          Left message -> do print message
+                                             playSwitch game
+                          Right game -> return game
 
 
 -- | Prompt the player for an action until the action is valid, then do it
-playTurn :: Game -> IO Game
-playTurn game = do putStrLn $ display game
-                   action <- readAction game
+playMove :: Game -> IO Game
+playMove game = do putStrLn $ display game
+                   action <- readAction moveParser game
                    case G.doAction action game of
                         Left message -> do print message
-                                           playTurn game
+                                           playMove game
                         Right game -> return game
 
 
 -- |
 -- A cycle ends when the next player comes before the current one in the
 -- player's list
-playCycle :: Game -> IO Game
-playCycle game = do g <- playTurn game
-                    if G.hasFinished g || (game^.currentPlayer > g^.currentPlayer)
-                    then return g
-                    else playCycle g
+playCycle :: (Game -> IO Game) -> Game -> IO Game
+playCycle playTurn game = do g <- playTurn game
+                             if G.hasFinished g || (game^.currentPlayer > g^.currentPlayer)
+                             then return g
+                             else playCycle playTurn g
 
 
 play :: Game -> IO Game
-play game = do g <- playCycle game
+play game = do g <- playCycle playMove game
                -- We can now ask for color switches
-               g <- iterateUntilM G.hasFinished playCycle g
+               putStrLn $ display g
+               g <- G.makeSwitches <$> playCycle playSwitch g
+               -- And continue until finished
+               g <- iterateUntilM G.hasFinished (playCycle playMove) g
                -- The game has now finished
                putStrLn $ display g
                -- TODO: print winner

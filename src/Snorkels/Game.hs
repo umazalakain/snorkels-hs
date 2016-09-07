@@ -5,10 +5,12 @@ module Snorkels.Game ( Action (..)
                      , getNextPlayer
                      , getWinner
                      , hasFinished
+                     , makeSwitches
                      ) where
 
 import Control.Lens
-import Data.Maybe (isJust, fromJust, listToMaybe)
+import Data.Maybe
+import Data.List
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
@@ -43,11 +45,21 @@ move pos game
           nextPlayer g = g & currentPlayer .~ fromJust (getNextPlayer g)
 
 
+validSwitches :: Game -> [Player]
+validSwitches game = game^.players \\ Bimap.keysR (game^.switches)
+
+
 switch :: Player -> Game -> Either String Game
 switch player game
-    | not validSwitch = Left "Cannot switch to such color."
-    | otherwise = Right $ game & switches .~ Bimap.insert (game^.currentPlayer) player (game^.switches)
-    where validSwitch = Bimap.notMemberR player $ game^.switches
+    | player `notElem` validSwitches game = Left "Cannot switch to such color."
+    | otherwise = Right $ nextPlayer . putSwitch $ game
+    where putSwitch g = g & switches .~ Bimap.insert (g^.currentPlayer) player (g^.switches)
+          nextPlayer g = g & currentPlayer .~ fromJust (getNextPlayer g)
+
+
+makeSwitches :: Game -> Game
+makeSwitches game = game & players .~ map (\p -> fromMaybe p (Bimap.lookup p $ game^.switches)) (game^.players)
+
 
 getWinner :: Game -> Maybe Player
 getWinner game = case getSurvivors game of
