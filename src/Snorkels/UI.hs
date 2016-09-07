@@ -14,7 +14,10 @@ import Data.Maybe
 import System.Random
 import System.IO
 import Text.Printf
-import Text.Regex.PCRE
+import Text.Parsec (parse)
+import Text.Parsec.Char (string, spaces)
+import Text.Parsec.String (Parser)
+import Text.ParserCombinators.Parsec.Number (nat)
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
@@ -69,27 +72,32 @@ create options = do g <- getStdGen
                                       }
 
 
--- TODO: Parse other actions too
-parseAction :: String -> Maybe G.Action
-parseAction input = let (_, _, _, pos) = input =~ "\\s*(\\d+)\\s+(\\d+)\\s*" :: (String, String, String, [String]) in
-                    -- TODO: This is horrible, and it doesn't check bounds
-                    Just $ G.Move (read $ pos !! 0 :: Int, read $ pos !! 1 :: Int)
+actionParser :: Parser G.Action
+actionParser = do string "move"
+                  spaces
+                  x <- Number.nat
+                  spaces
+                  y <- Number.nat
+                  spaces
+                  return $ G.Move (x, y)
 
 
--- TODO: Print error message on erroneous input
-readAction :: Game -> IO (Maybe G.Action)
+readAction :: Game -> IO G.Action
 readAction game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
                      hFlush stdout
                      input <- getLine
-                     return $ parseAction input
+                     case parse actionParser "" input of
+                       Left parseError -> do print parseError
+                                             readAction game
+                       Right action -> return action
 
 
 -- | Prompt the player for an action until the action is valid, then do it
 playTurn :: Game -> IO Game
 playTurn game = do putStrLn $ display game
-                   action <- untilJust $ readAction game
+                   action <- readAction game
                    case G.doAction action game of
-                        Left message -> do putStrLn message
+                        Left message -> do print message
                                            playTurn game
                         Right game -> return game
 
