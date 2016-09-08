@@ -19,15 +19,12 @@ import Snorkels.Types
 import qualified Snorkels.Board as B
 
 
-getPlayers :: Game -> [Player]
-getPlayers game = game^.playerTypes.to Map.keys
-
-
 getSurvivors :: Game -> [Player]
-getSurvivors game = case filter hasSurvived $ getPlayers game of
+getSurvivors game = case filter hasSurvived players of
                          [] -> [game^.currentPlayer]
                          s -> s
                     where hasSurvived = not . B.hasLost game
+                          players = game^.playerTypes.to Map.keys
 
 
 getNextPlayer :: Game -> Maybe Player
@@ -55,7 +52,7 @@ move pos game
 
 
 validSwitches :: Game -> [Player]
-validSwitches game = getPlayers game \\ Bimap.keysR (game^.switches)
+validSwitches game = getSurvivors game \\ Bimap.keysR (game^.switches)
 
 
 switch :: Player -> Game -> Either String Game
