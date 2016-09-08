@@ -54,7 +54,7 @@ executable snorkels
   -- other-modules:
 
   -- LANGUAGE extensions used by modules in this package.
-  other-extensions:    TemplateHaskell, FlexibleInstances
+  other-extensions:    FlexibleInstances
 
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.8 && <4.9,
@@ -81,7 +81,7 @@ library
   -- other-modules:       
   
   -- LANGUAGE extensions used by modules in this package.
-  other-extensions:    FlexibleInstances, TemplateHaskell
+  other-extensions:    FlexibleInstances
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.8 && <4.9,
