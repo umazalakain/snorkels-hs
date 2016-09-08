@@ -27,4 +27,5 @@ Sandboxed:
 
     cabal sandbox
     cabal install
+    cabal configure
     cabal run
