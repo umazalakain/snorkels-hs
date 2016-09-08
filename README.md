@@ -13,3 +13,18 @@ Coming up are:
 
 - Computer player agents.
 - Network games.
+
+
+# Installation
+
+User-wide:
+
+    cabal install
+    cabal configure
+    cabal copy
+
+Sandboxed:
+
+    cabal sandbox
+    cabal install
+    cabal run
