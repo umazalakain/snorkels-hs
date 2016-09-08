@@ -4,8 +4,8 @@ module Snorkels.Play ( GameOptions (..)
                      ) where
 
 
-import Control.Lens
 import Control.Monad.Loops (iterateUntilM)
+import Data.Function
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import System.Random (getStdGen)
@@ -26,16 +26,16 @@ create :: GameOptions -> IO Game
 create options = do g <- getStdGen
                     return $ B.throwStones game (optNumStones options) g
                     where players = take (optNumPlayers options) [Green ..]
-                          game = Game { _pieces = Map.empty
-                                      , _boardSize = optBoardSize options
-                                      , _playerTypes = Map.fromList [(p, CLI.cli) | p <- players]
-                                      , _currentPlayer = Green
-                                      , _switches = Bimap.empty
+                          game = Game { pieces = Map.empty
+                                      , boardSize = optBoardSize options
+                                      , playerTypes = Map.fromList [(p, CLI.cli) | p <- players]
+                                      , currentPlayer = Green
+                                      , switches = Bimap.empty
                                       }
 
 
 getCurrentPlayerType :: Game -> PlayerType
-getCurrentPlayerType game = (game^.playerTypes) Map.! (game^.currentPlayer)
+getCurrentPlayerType game = (game&playerTypes) Map.! (game&currentPlayer)
 
 
 playMove :: Game -> Maybe String -> IO Game
@@ -58,7 +58,7 @@ playSwitch game errorMessage = do pos <- getSwitch pt game errorMessage
 
 playRound :: (Game -> Maybe String -> IO Game) -> Game -> IO Game
 playRound playFunc game = do g <- playFunc game Nothing
-                             if G.hasFinished g || (game^.currentPlayer > g^.currentPlayer)
+                             if G.hasFinished g || ((game&currentPlayer) > (g&currentPlayer))
                              then return g
                              else playRound playFunc g
 

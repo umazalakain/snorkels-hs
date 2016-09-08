@@ -2,9 +2,9 @@
 
 module Snorkels.CLI ( cli ) where
 
-import Control.Lens
 import Control.Monad
 import Data.Char
+import Data.Function
 import Data.List
 import System.IO (hFlush, stdout)
 import Text.Printf (printf)
@@ -46,7 +46,7 @@ instance Displayable Game where
                         | x <- [0..width-1]]
                         | y <- [0..height-1]
                 ]
-                where (width, height) = g^.boardSize
+                where (width, height) = g&boardSize
 
 
 playerRepr :: Bimap.Bimap Player String
@@ -72,7 +72,7 @@ switchParser = do spaces
 
 
 readParser :: Parser a -> Game -> IO a
-readParser parser game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
+readParser parser game = do putStr $ printf "%s: " $ show $ game&currentPlayer
                             hFlush stdout
                             input <- getLine
                             case parse parser "" input of

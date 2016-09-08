@@ -22,8 +22,8 @@ module Snorkels.Board (
                       , throwStones
                       ) where
 
-import Control.Lens
 import Control.Monad (mfilter)
+import Data.Function
 import Data.Maybe
 import System.Random (RandomGen, randomRs)
 import qualified Data.Map.Strict as Map
@@ -59,7 +59,7 @@ neighbours position = Set.map (`offset` position) neighbourOffsets
 -- | 
 -- Check if some 'Position' is within the bounds of a board
 isValid :: Game -> Position -> Bool
-isValid game = inBounds $ game^.boardSize
+isValid game = inBounds $ game&boardSize
 
 -- | 
 -- Check if some 'Position's are within the bounds of a game
@@ -70,13 +70,13 @@ areValid game = Set.filter (isValid game)
 -- Get all the 'Position's that are within a board
 allPositions :: Game -> Set.Set Position
 allPositions game = Set.fromList [(x, y) | x <- [0..width-1], y <- [0..height-1]]
-                     where (width, height) = game^.boardSize
+                     where (width, height) = game&boardSize
 
 -- |
 -- Get all the 'Position's that are within a board and that haven't been already
 -- occupied.
 freePositions :: Game -> Set.Set Position
-freePositions game = Set.filter (flip Map.notMember $ game^.pieces)
+freePositions game = Set.filter (flip Map.notMember $ game&pieces)
                    . allPositions
                    $ game
 
@@ -92,7 +92,7 @@ areNeighbours game positions = areValid game
 -- |
 -- Filter 'Position's only leaving those which have a 'Piece' in some board.
 arePieces :: Game -> Set.Set Position -> Set.Set Position
-arePieces game = Set.intersection (Map.keysSet (game^.pieces)) . areValid game
+arePieces game = Set.intersection (Map.keysSet (game&pieces)) . areValid game
 
 -- |
 -- Filter 'Position's only leaving those which have a 'Snorkel' in some board.
@@ -112,10 +112,10 @@ growGroup :: Game -> Group -> Group
 growGroup game initial
             | Set.null new = initial
             | otherwise = growGroup game group
-            where group = Group {_positions = Set.union initialPositions new, _player = owner}
+            where group = Group {positions = Set.union initialPositions new, player = owner}
                   new = areFromPlayer game owner $ areNeighbours game initialPositions
-                  initialPositions = initial^.positions
-                  owner = initial^.player
+                  initialPositions = initial&positions
+                  owner = initial&player
 
 -- TODO: Should this return a Maybe Group (to account for the possibility of the
 -- given position on the board being empty) or allow groups of empty positions
@@ -127,7 +127,7 @@ growGroup game initial
 -- 'Position'
 groupFrom :: Game -> Position -> Maybe Group
 groupFrom game pos = growGroup game <$> (groupForPlayer <$> owner)
-                     where groupForPlayer p = Group {_positions = Set.singleton pos, _player = p}
+                     where groupForPlayer p = Group {positions = Set.singleton pos, player = p}
                            owner = mfilter isSnorkel (getPiece game pos) >>= getPlayer
 
 -- |
@@ -142,26 +142,26 @@ getGroups game = Set.map fromJust
 -- Check whether a given 'Group' is trapped by having all its surrounding
 -- positions taken by 'Stone's or 'Snorkel's from some other 'Player'.
 isTrapped :: Game -> Group -> Bool
-isTrapped game group = all (isBlocking (group^.player) . getPiece game)
-                           (Set.toList $ areNeighbours game $ group^.positions)
+isTrapped game group = all (isBlocking (group&player) . getPiece game)
+                           (Set.toList $ areNeighbours game $ group&positions)
 
 -- |
 -- Check whether the given 'Player' has one of its snorkel 'Group's trapped.
 hasLost :: Game -> Player -> Bool
 hasLost game p = any (isTrapped game)
-                     (filter (^.player.to (== p)) $ Set.toList $ getGroups game)
+                     (filter ((== p) . player) $ Set.toList $ getGroups game)
 
 
 -- |
 -- Get whatever is at the given 'Position' on the board.
 getPiece :: Game -> Position -> Maybe Piece
-getPiece game pos = Map.lookup pos $ game^.pieces
+getPiece game pos = Map.lookup pos $ game&pieces
 
 
 -- |
 -- Put a 'Piece' at the given 'Position' on the board.
 putPiece :: Game -> Position -> Piece -> Game
-putPiece game pos piece = game & pieces .~ (game^.pieces & at pos ?~ piece)
+putPiece game pos piece = game {pieces = Map.insert pos piece $ game&pieces}
 
 
 -- |

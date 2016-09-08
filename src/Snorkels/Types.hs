@@ -1,25 +1,15 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Snorkels.Types ( Position
                       , Snorkel (..)
                       , Player
                       , Group (..)
-                      , positions
-                      , player
                       , Piece (..)
                       , Game (..)
-                      , pieces
-                      , boardSize
-                      , playerTypes
-                      , currentPlayer
-                      , switches
                       , isSnorkel
                       , getPlayer
                       , isBlocking
                       , PlayerType (..)
                       ) where
 
-import Control.Lens
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
@@ -41,11 +31,9 @@ type Player = Snorkel
 -- | 
 -- An horizontally or vertically connected group of 'Snorkel's that belong to
 -- the same 'Player'
-data Group = Group { _positions :: Set.Set Position
-                   , _player :: Player
+data Group = Group { positions :: Set.Set Position
+                   , player :: Player
                    } deriving (Show, Eq, Ord)
-
-makeLenses ''Group
 
 
 -- |
@@ -84,15 +72,13 @@ data PlayerType = PlayerType {
 
 data Game = Game { 
                  -- | Only 'Position's occupied by 'Piece's are here
-                   _pieces :: Map.Map Position Piece
+                   pieces :: Map.Map Position Piece
                  -- | Width and height limits of the board
-                 , _boardSize :: (Int, Int)
+                 , boardSize :: (Int, Int)
                  -- | List of 'Player's that didn't 'Quit'
-                 , _playerTypes :: Map.Map Player PlayerType
+                 , playerTypes :: Map.Map Player PlayerType
                  -- | 'Player' that plays next
-                 , _currentPlayer :: Player
+                 , currentPlayer :: Player
                  -- | Map of what each player chooses to be when asked to switch
-                 , _switches :: Bimap.Bimap Player Player
+                 , switches :: Bimap.Bimap Player Player
                  }
-
-makeLenses ''Game

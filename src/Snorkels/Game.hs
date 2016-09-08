@@ -9,7 +9,7 @@ module Snorkels.Game ( move
                      , makeSwitches
                      ) where
 
-import Control.Lens
+import Data.Function
 import Data.Maybe
 import Data.List
 import qualified Data.Bimap as Bimap
@@ -22,16 +22,16 @@ import qualified Snorkels.Board as B
 
 getSurvivors :: Game -> [Player]
 getSurvivors game = case filter hasSurvived players of
-                         [] -> [game^.currentPlayer]
+                         [] -> [game&currentPlayer]
                          s -> s
                     where hasSurvived = not . B.hasLost game
-                          players = game^.playerTypes.to Map.keys
+                          players = Map.keys $ game&playerTypes
 
 
 getNextPlayer :: Game -> Maybe Player
 getNextPlayer game = listToMaybe
                    . drop 1
-                   . dropWhile (/= game^.currentPlayer)
+                   . dropWhile (/= (game&currentPlayer))
                    $ cycle
                    $ getSurvivors game
 
@@ -48,25 +48,25 @@ move pos game
     | otherwise = Right $ nextPlayer . putSnorkel $ game
     where validPosition = elem pos $ B.freePositions game
           survivors = isJust $ getNextPlayer game
-          putSnorkel g = B.putPiece g pos $ Snorkel (game^.currentPlayer)
-          nextPlayer g = g & currentPlayer .~ fromJust (getNextPlayer g)
+          putSnorkel g = B.putPiece g pos $ Snorkel (game&currentPlayer)
+          nextPlayer g = g {currentPlayer = fromJust (getNextPlayer g)}
 
 
 validSwitches :: Game -> [Player]
-validSwitches game = getSurvivors game \\ Bimap.keysR (game^.switches)
+validSwitches game = getSurvivors game \\ Bimap.keysR (game&switches)
 
 
 switch :: Player -> Game -> Either String Game
 switch player game
     | player `notElem` validSwitches game = Left "Cannot switch to such color."
     | otherwise = Right $ nextPlayer . putSwitch $ game
-    where putSwitch g = g & switches .~ Bimap.insert (g^.currentPlayer) player (g^.switches)
-          nextPlayer g = g & currentPlayer .~ fromJust (getNextPlayer g)
+    where putSwitch g = g {switches = Bimap.insert (g&currentPlayer) player (g&switches)}
+          nextPlayer g = g {currentPlayer = fromJust (getNextPlayer g)}
 
 
 makeSwitches :: Game -> Game
-makeSwitches game = game & playerTypes %~ Map.mapKeys getChosen
-                    where getChosen p = fromMaybe p (Bimap.lookup p $ game^.switches)
+makeSwitches game = game {playerTypes = Map.mapKeys getChosen $ game&playerTypes}
+                    where getChosen p = fromMaybe p (Bimap.lookup p $ game&switches)
 
 
 getWinner :: Game -> Maybe Player
