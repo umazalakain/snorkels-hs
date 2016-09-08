@@ -38,28 +38,26 @@ getCurrentPlayerType :: Game -> PlayerType
 getCurrentPlayerType game = (game^.playerTypes) Map.! (game^.currentPlayer)
 
 
-playMove :: Game -> IO Game
-playMove game = do move <- getMove pt game
-                   case move of
-                     Nothing -> return $ G.quit game
-                     Just pos -> case G.move pos game of
-                                   Left message -> do reportError pt message
-                                                      playMove game
-                                   Right game -> return game
-                where pt = getCurrentPlayerType game
+playMove :: Game -> Maybe String -> IO Game
+playMove game errorMessage = do move <- getMove pt game errorMessage
+                                case move of
+                                  Nothing -> return $ G.quit game
+                                  Just pos -> case G.move pos game of
+                                                Left message -> playMove game $ Just message
+                                                Right game -> return game
+                             where pt = getCurrentPlayerType game
 
 
-playSwitch :: Game -> IO Game
-playSwitch game = do pos <- getSwitch pt game
-                     case G.switch pos game of
-                       Left message -> do reportError pt message
-                                          playSwitch game
-                       Right game -> return game
-                  where pt = getCurrentPlayerType game
+playSwitch :: Game -> Maybe String -> IO Game
+playSwitch game errorMessage = do pos <- getSwitch pt game errorMessage
+                                  case G.switch pos game of
+                                    Left message -> playSwitch game $ Just message
+                                    Right game -> return game
+                               where pt = getCurrentPlayerType game
 
 
-playRound :: (Game -> IO Game) -> Game -> IO Game
-playRound playFunc game = do g <- playFunc game
+playRound :: (Game -> Maybe String -> IO Game) -> Game -> IO Game
+playRound playFunc game = do g <- playFunc game Nothing
                              if G.hasFinished g || (game^.currentPlayer > g^.currentPlayer)
                              then return g
                              else playRound playFunc g

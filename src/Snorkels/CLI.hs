@@ -3,6 +3,7 @@
 module Snorkels.CLI ( cli ) where
 
 import Control.Lens
+import Control.Monad
 import Data.Char
 import Data.List
 import System.IO (hFlush, stdout)
@@ -80,18 +81,20 @@ readParser parser game = do putStr $ printf "%s: " $ show $ game^.currentPlayer
                               Right result -> return result
 
 
-cliMove :: Game -> IO (Maybe Position)
-cliMove game = do putStrLn $ display game
-                  readParser moveParser game
+cliMove :: Game -> Maybe String -> IO (Maybe Position)
+cliMove game errorMessage = do putStrLn $ display game
+                               mapM_ putStrLn errorMessage
+                               readParser moveParser game
 
 
-cliSwitch :: Game -> IO Player
-cliSwitch game = do putStrLn "Choose the player you want to switch to"
-                    readParser switchParser game
+cliSwitch :: Game -> Maybe String -> IO Player
+cliSwitch game errorMessage = do mapM_ putStrLn errorMessage
+                                 -- TODO: Print the list of available choices
+                                 putStrLn "Choose the player you want to switch to"
+                                 readParser switchParser game
 
 
 cli :: PlayerType
 cli = PlayerType { getMove = cliMove
                  , getSwitch = cliSwitch
-                 , reportError = print
                  }
