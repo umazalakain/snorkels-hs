@@ -5,6 +5,7 @@ module Snorkels.Game ( move
                      , getNextPlayer
                      , getWinner
                      , hasFinished
+                     , validSwitches
                      , makeSwitches
                      ) where
 

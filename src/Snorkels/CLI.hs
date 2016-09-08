@@ -89,8 +89,8 @@ cliMove game errorMessage = do putStrLn $ display game
 
 cliSwitch :: Game -> Maybe String -> IO Player
 cliSwitch game errorMessage = do mapM_ putStrLn errorMessage
-                                 -- TODO: Print the list of available choices
-                                 putStrLn "Choose the player you want to switch to"
+                                 putStr "Pick the color you want to switch to: "
+                                 print $ G.validSwitches game
                                  readParser switchParser game
 
 
