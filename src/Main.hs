@@ -1,5 +1,6 @@
 module Main where
 
+import Snorkels.Play
 import Snorkels.UI
 
 

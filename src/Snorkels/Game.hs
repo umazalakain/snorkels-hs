@@ -1,6 +1,6 @@
-module Snorkels.Game ( Action (..)
-                     , doAction
-                     , move
+module Snorkels.Game ( move
+                     , switch
+                     , quit
                      , getSurvivors
                      , getNextPlayer
                      , getWinner
@@ -19,8 +19,12 @@ import Snorkels.Types
 import qualified Snorkels.Board as B
 
 
+getPlayers :: Game -> [Player]
+getPlayers game = game^.playerTypes.to Map.keys
+
+
 getSurvivors :: Game -> [Player]
-getSurvivors game = case filter hasSurvived $ game^.players of
+getSurvivors game = case filter hasSurvived $ getPlayers game of
                          [] -> [game^.currentPlayer]
                          s -> s
                     where hasSurvived = not . B.hasLost game
@@ -32,6 +36,11 @@ getNextPlayer game = listToMaybe
                    . dropWhile (/= game^.currentPlayer)
                    $ cycle
                    $ getSurvivors game
+
+
+quit :: Game -> Game
+-- TODO
+quit game = game
 
 
 move :: Position -> Game -> Either String Game
@@ -46,7 +55,7 @@ move pos game
 
 
 validSwitches :: Game -> [Player]
-validSwitches game = game^.players \\ Bimap.keysR (game^.switches)
+validSwitches game = getPlayers game \\ Bimap.keysR (game^.switches)
 
 
 switch :: Player -> Game -> Either String Game
@@ -58,7 +67,8 @@ switch player game
 
 
 makeSwitches :: Game -> Game
-makeSwitches game = game & players .~ map (\p -> fromMaybe p (Bimap.lookup p $ game^.switches)) (game^.players)
+makeSwitches game = game & playerTypes %~ Map.mapKeys getChosen
+                    where getChosen p = fromMaybe p (Bimap.lookup p $ game^.switches)
 
 
 getWinner :: Game -> Maybe Player
@@ -69,12 +79,3 @@ getWinner game = case getSurvivors game of
 
 hasFinished :: Game -> Bool
 hasFinished = isJust . getWinner
-
-
-data Action = Move Position | Switch Player | Quit
-
-
-doAction :: Action -> Game -> Either String Game
-doAction (Move pos) = move pos
-doAction (Switch player) = switch player
--- TODO: Define for quit

@@ -10,12 +10,13 @@ module Snorkels.Types ( Position
                       , Game (..)
                       , pieces
                       , boardSize
-                      , players
+                      , playerTypes
                       , currentPlayer
                       , switches
                       , isSnorkel
                       , getPlayer
                       , isBlocking
+                      , PlayerType (..)
                       ) where
 
 import Control.Lens
@@ -75,17 +76,24 @@ isBlocking _ Nothing = False
 isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 
 
+data PlayerType = PlayerType {
+                               getMove :: Game -> IO (Maybe Position)
+                             , getSwitch :: Game -> IO Player
+                             , reportError :: String -> IO ()
+                             }
+
+
 data Game = Game { 
                  -- | Only 'Position's occupied by 'Piece's are here
                    _pieces :: Map.Map Position Piece
                  -- | Width and height limits of the board
                  , _boardSize :: (Int, Int)
                  -- | List of 'Player's that didn't 'Quit'
-                 , _players :: [Player]
+                 , _playerTypes :: Map.Map Player PlayerType
                  -- | 'Player' that plays next
                  , _currentPlayer :: Player
                  -- | Map of what each player chooses to be when asked to switch
                  , _switches :: Bimap.Bimap Player Player
-                 } deriving (Eq)
+                 }
 
 makeLenses ''Game
