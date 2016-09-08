@@ -40,13 +40,22 @@ instance Displayable (Maybe Piece) where
         Nothing -> " "
 
 instance Displayable Game where
-    display g = intercalate "\n"
-                [concat
-                    [concat ["[", display (B.getPiece g (x, y)), "]"]
-                        | x <- [0..width-1]]
-                        | y <- [0..height-1]
-                ]
+{-._________________.-}
+{-| . . . . . . . . |-}
+{-| . . . . . . . . |-}
+{-| . . . . . . . . |-}
+{-| . . . . . . . . |-}
+{-| . . . . . . . . |-}
+{-| . . . . . . . . |-}
+{-| . . . . . . . . |-}
+{-| . . . . . . . . |-}
+{-'-----------------'-}
+    display g = header ++ "\n" ++ intercalate "\n" [line y | y <- [0..height-1]] ++ "\n" ++ footer
                 where (width, height) = g&boardSize
+                      header = "." ++ replicate (width*2-1) '_' ++ "."
+                      footer = "'" ++ replicate (width*2-1) '-' ++ "'"
+                      piece x y = display (B.getPiece g (x, y))
+                      line y = "|" ++ intercalate "." [piece x y | x <- [0..width-1]] ++ "|"
 
 
 playerRepr :: Bimap.Bimap Player String
