@@ -1,13 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Snorkels.CLI ( GameOptions (..)
-                    , create
-                    ) where
+module Snorkels.CLI ( cli ) where
 
 import Control.Lens
 import Data.Char
 import Data.List
-import System.Random (getStdGen)
 import System.IO (hFlush, stdout)
 import Text.Printf (printf)
 import Text.Parsec (parse, (<|>))
@@ -17,7 +14,6 @@ import Text.Parsec.Combinator (choice)
 import Text.ParserCombinators.Parsec.Number (nat)
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
 import qualified System.Console.ANSI as ANSI
 
 import Snorkels.Types
@@ -50,24 +46,6 @@ instance Displayable Game where
                         | y <- [0..height-1]
                 ]
                 where (width, height) = g^.boardSize
-
-
-data GameOptions = GameOptions { optNumStones :: Int
-                               , optBoardSize :: (Int, Int)
-                               , optNumPlayers :: Int
-                               } deriving (Eq)
-
-
-create :: GameOptions -> IO Game
-create options = do g <- getStdGen
-                    return $ B.throwStones game (optNumStones options) g
-                    where players = take (optNumPlayers options) [Green ..]
-                          game = Game { _pieces = Map.empty
-                                      , _boardSize = optBoardSize options
-                                      , _playerTypes = Map.fromList [(p, cli) | p <- players]
-                                      , _currentPlayer = Green
-                                      , _switches = Bimap.empty
-                                      }
 
 
 playerRepr :: Bimap.Bimap Player String
