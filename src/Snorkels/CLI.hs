@@ -88,13 +88,18 @@ cliMove game errorMessage = do putStrLn $ display game
 
 
 cliSwitch :: Game -> Maybe String -> IO Player
-cliSwitch game errorMessage = do mapM_ putStrLn errorMessage
+cliSwitch game errorMessage = do putStrLn $ display game
+                                 mapM_ putStrLn errorMessage
                                  putStr "Pick the color you want to switch to: "
                                  print $ G.validSwitches game
                                  readParser switchParser game
 
 
+cliReportWinner :: Game -> Player -> IO ()
+cliReportWinner _ player = putStrLn $ printf "%s has won!" $ show player
+
 cli :: PlayerType
 cli = PlayerType { getMove = cliMove
                  , getSwitch = cliSwitch
+                 , reportWinner = cliReportWinner
                  }

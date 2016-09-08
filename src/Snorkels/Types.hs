@@ -67,6 +67,7 @@ isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 data PlayerType = PlayerType {
                                getMove :: Game -> Maybe String -> IO (Maybe Position)
                              , getSwitch :: Game -> Maybe String -> IO Player
+                             , reportWinner :: Game -> Player -> IO ()
                              }
 
 

@@ -63,11 +63,18 @@ playRound playFunc game = do g <- playFunc game Nothing
                              else playRound playFunc g
 
 
+reportWinnerAround :: Game -> IO ()
+reportWinnerAround game = case G.getWinner game of
+                            Just winner -> mapM_ (\pt -> reportWinner pt game winner) (Map.elems $ game&playerTypes)
+                            Nothing -> return ()
+
+
 play :: Game -> IO Game
 play game = do g <- playRound playMove game
+               -- The first moving round is over, ask for switches
                g <- G.makeSwitches <$> playRound playSwitch g
-               -- And continue until finished
+               -- Continue until finished
                g <- iterateUntilM G.hasFinished (playRound playMove) g
                -- The game has now finished
-               -- TODO: print winner
+               reportWinnerAround g
                return g
