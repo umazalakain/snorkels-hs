@@ -63,6 +63,17 @@ moveParser = do spaces
                 return $ Just (x, y)
 
 
+quitParser :: Parser (Maybe Position)
+quitParser = do spaces
+                string "quit"
+                spaces
+                return Nothing
+
+
+moveOrQuitParser :: Parser (Maybe Position)
+moveOrQuitParser = moveParser <|> quitParser
+
+
 switchParser :: Parser Player
 switchParser = do spaces
                   -- TODO: Limit choices to unchosen players
@@ -84,7 +95,7 @@ readParser parser game = do putStr $ printf "%s: " $ show $ game&currentPlayer
 cliMove :: Game -> Maybe String -> IO (Maybe Position)
 cliMove game errorMessage = do putStrLn $ display game
                                mapM_ putStrLn errorMessage
-                               readParser moveParser game
+                               readParser moveOrQuitParser game
 
 
 cliSwitch :: Game -> Maybe String -> IO Player

@@ -36,20 +36,22 @@ getNextPlayer game = listToMaybe
                    $ getSurvivors game
 
 
+advancePlayer :: Game -> Game
+advancePlayer game = game {currentPlayer = fromJust (getNextPlayer game)}
+
+
 quit :: Game -> Game
--- TODO
-quit game = game
+quit game = (advancePlayer game) {playerTypes = Map.delete (game&currentPlayer) (game&playerTypes)}
 
 
 move :: Position -> Game -> Either String Game
 move pos game
     | not validPosition = Left "Cannot place a snorkel there."
     | not survivors = Left "No surviving players left."
-    | otherwise = Right $ nextPlayer . putSnorkel $ game
+    | otherwise = Right $ advancePlayer . putSnorkel $ game
     where validPosition = elem pos $ B.freePositions game
           survivors = isJust $ getNextPlayer game
           putSnorkel g = B.putPiece g pos $ Snorkel (game&currentPlayer)
-          nextPlayer g = g {currentPlayer = fromJust (getNextPlayer g)}
 
 
 validSwitches :: Game -> [Player]
