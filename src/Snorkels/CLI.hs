@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Snorkels.UI ( GameOptions (..)
-                   , create
-                   ) where
+module Snorkels.CLI ( GameOptions (..)
+                    , create
+                    ) where
 
 import Control.Lens
 import Data.Char
