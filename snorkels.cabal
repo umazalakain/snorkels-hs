@@ -76,7 +76,7 @@ executable snorkels
 
 library
   -- Modules exported by the library.
-  exposed-modules:     Snorkels.UI, Snorkels.Board, Snorkels.Game, Snorkels.Types
+  exposed-modules:     Snorkels.CLI, Snorkels.Board, Snorkels.Game, Snorkels.Types, Snorkels.Play
   
   -- Modules included in this library but not exported.
   -- other-modules:       
