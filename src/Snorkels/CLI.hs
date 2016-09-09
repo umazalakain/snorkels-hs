@@ -79,7 +79,6 @@ moveOrQuitParser = moveParser <|> quitParser
 
 switchParser :: Parser Player
 switchParser = do spaces
-                  -- TODO: Limit choices to unchosen players
                   player <- choice $ map string $ Bimap.keysR playerRepr
                   spaces
                   return $ playerRepr Bimap.!> player 
@@ -110,7 +109,8 @@ cliSwitch game errorMessage = do putStrLn $ display game
 
 
 cliReportWinner :: Game -> Player -> IO ()
-cliReportWinner _ player = putStrLn $ printf "%s has won!" $ show player
+cliReportWinner game player = do putStrLn $ display game
+                                 putStrLn $ printf "%s has won!" $ show player
 
 cli :: PlayerType
 cli = PlayerType { getMove = cliMove
