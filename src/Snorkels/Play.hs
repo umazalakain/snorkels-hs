@@ -5,9 +5,11 @@ module Snorkels.Play ( GameOptions (..)
 
 
 import Control.Monad.Loops (iterateUntilM)
-import Data.Function
 import qualified Data.Bimap as Bimap
+import Data.Function
 import qualified Data.Map.Strict as Map
+import Data.Maybe
+import Data.List (partition)
 import System.Random (getStdGen)
 
 import Snorkels.Types
@@ -65,8 +67,13 @@ playRound playFunc game = do g <- playFunc game Nothing
 
 reportWinnerAround :: Game -> IO ()
 reportWinnerAround game = case G.getWinner game of
-                            Just winner -> mapM_ (\pt -> reportWinner pt game winner) (Map.elems $ game&playerTypes)
+                            Just winner -> do mapM_ (reportToPT winner) nonlocals
+                                              maybe (return ()) (reportToPT winner) (listToMaybe locals)
                             Nothing -> return ()
+                           where pts = Map.elems $ game&playerTypes
+                                 (locals, nonlocals) = partition isLocal pts
+                                 reportToPT winner pt = reportWinner pt game winner
+
 
 
 play :: Game -> IO Game

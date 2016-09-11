@@ -65,21 +65,27 @@ isBlocking player (Just piece) = maybe True (/= player) (getPlayer piece)
 
 
 data PlayerType = PlayerType {
-                               getMove :: Game -> Maybe String -> IO (Maybe Position)
-                             , getSwitch :: Game -> Maybe String -> IO Player
-                             , reportWinner :: Game -> Player -> IO ()
-                             }
+    -- | Maybe print an error message and get a position to move to or a quit.
+      getMove :: Game -> Maybe String -> IO (Maybe Position)
+    -- | Maybe print an error message and get a player to switch to.
+    , getSwitch :: Game -> Maybe String -> IO Player
+    -- | Report the player about the winner of the game
+    , reportWinner :: Game -> Player -> IO ()
+    -- | Only one of the playertypes marked as local is notified about the
+    -- winner. FIXME: There must be a cleverer way of doing this.
+    , isLocal :: Bool
+}
 
 
 data Game = Game { 
-                 -- | Only 'Position's occupied by 'Piece's are here
-                   pieces :: Map.Map Position Piece
-                 -- | Width and height limits of the board
-                 , boardSize :: (Int, Int)
-                 -- | List of 'Player's that didn't 'Quit'
-                 , playerTypes :: Map.Map Player PlayerType
-                 -- | 'Player' that plays next
-                 , currentPlayer :: Player
-                 -- | Map of what each player chooses to be when asked to switch
-                 , switches :: Bimap.Bimap Player Player
-                 }
+    -- | Only 'Position's occupied by 'Piece's are here
+      pieces :: Map.Map Position Piece
+    -- | Width and height limits of the board
+    , boardSize :: (Int, Int)
+    -- | List of 'Player's that didn't 'Quit'
+    , playerTypes :: Map.Map Player PlayerType
+    -- | 'Player' that plays next
+    , currentPlayer :: Player
+    -- | Map of what each player chooses to be when asked to switch
+    , switches :: Bimap.Bimap Player Player
+}

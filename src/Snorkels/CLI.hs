@@ -116,4 +116,5 @@ cli :: PlayerType
 cli = PlayerType { getMove = cliMove
                  , getSwitch = cliSwitch
                  , reportWinner = cliReportWinner
+                 , isLocal = True
                  }
