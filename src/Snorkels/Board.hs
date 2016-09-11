@@ -1,4 +1,4 @@
-module Snorkels.Board ( 
+odule Snorkels.Board (
                       -- * Checkers
                         isValid
                       , isTrapped
@@ -32,7 +32,7 @@ import qualified Data.Set as Set
 import Snorkels.Types
 
 
--- | 
+-- |
 -- Given some @(min, max)@ bounds, check if an 'Int' is in them.
 -- @min@ is inclusive, @max@ isn't.
 inRange :: (Int, Int) -> Int -> Bool
@@ -56,17 +56,17 @@ neighbours :: Position -> Set.Set Position
 neighbours position = Set.map (`offset` position) neighbourOffsets
                       where neighbourOffsets = Set.fromList [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
--- | 
+-- |
 -- Check if some 'Position' is within the bounds of a board
 isValid :: Game -> Position -> Bool
 isValid game = inBounds $ game&boardSize
 
--- | 
+-- |
 -- Check if some 'Position's are within the bounds of a game
 areValid :: Game -> Set.Set Position -> Set.Set Position
 areValid game = Set.filter (isValid game)
 
--- | 
+-- |
 -- Get all the 'Position's that are within a board
 allPositions :: Game -> Set.Set Position
 allPositions game = Set.fromList [(x, y) | x <- [0..width-1], y <- [0..height-1]]
@@ -171,8 +171,16 @@ shufflePositions positions g = map (p !!) $ randomRs (0, length p - 1) g
                                where p = Set.toList positions
 
 
+throwStone :: RandomGen g => Game -> g -> Either String Game
+throwStone game g
+    | null $ freePositions game = Left "There is no place to throw a stone."
+    | otherwise = Right $ putPiece game pos Stone
+                  where pos = head $ shufflePositions (freePositions game) g
+
 -- |
 -- Randomly throw the given number of 'Stone's on the board.
-throwStones :: RandomGen g => Game -> Int -> g -> Game
-throwStones game n g = foldl throwStone game $ take n $ shufflePositions (freePositions game) g 
-                       where throwStone b p = putPiece b p Stone
+throwStones :: RandomGen g => Game -> Int -> g -> Either String Game
+throwStones game 0 _ = Right game
+throwStones game n g = case throwStone game g of
+                         Right game -> throwStones game (n-1) g
+                         Left message -> Left message
