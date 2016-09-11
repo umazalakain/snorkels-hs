@@ -1,4 +1,4 @@
-odule Snorkels.Board (
+module Snorkels.Board (
                       -- * Checkers
                         isValid
                       , isTrapped
@@ -19,6 +19,7 @@ odule Snorkels.Board (
                       -- * Manipulation
                       , getPiece
                       , putPiece
+                      , shufflePositions
                       , throwStones
                       ) where
 
