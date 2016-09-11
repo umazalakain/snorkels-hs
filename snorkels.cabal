@@ -63,7 +63,8 @@ executable snorkels
                        containers >=0.5 && <0.6, 
                        ansi-terminal >=0.6 && <0.7,
                        bimap >=0.3.2 && <0.3.3,
-                       parsec >=3.1.11 && <3.1.12
+                       parsec >=3.1.11 && <3.1.12,
+                       options >=1.2.1.1 && <1.2.1.2
 
   -- Directories containing source files.
   hs-source-dirs:      src
@@ -89,7 +90,8 @@ library
                        containers >=0.5 && <0.6, 
                        ansi-terminal >=0.6 && <0.7,
                        bimap >=0.3.2 && <0.3.3,
-                       parsec >=3.1.11 && <3.1.12
+                       parsec >=3.1.11 && <3.1.12,
+                       options >=1.2.1.1 && <1.2.1.2
   
   -- Directories containing source files.
   hs-source-dirs:      src

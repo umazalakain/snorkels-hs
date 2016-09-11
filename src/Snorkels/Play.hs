@@ -1,39 +1,14 @@
-module Snorkels.Play ( GameOptions (..)
-                     , create
-                     , play
-                     ) where
+module Snorkels.Play ( play ) where
 
 
 import Control.Monad.Loops (iterateUntilM)
-import qualified Data.Bimap as Bimap
 import Data.Function
 import qualified Data.Map.Strict as Map
 import Data.Maybe
 import Data.List (partition)
-import System.Random (getStdGen)
 
 import Snorkels.Types
-import qualified Snorkels.CLI as CLI
 import qualified Snorkels.Game as G
-import qualified Snorkels.Board as B
-
-
-data GameOptions = GameOptions { optNumStones :: Int
-                               , optBoardSize :: (Int, Int)
-                               , optNumPlayers :: Int
-                               } deriving (Eq)
-
-
-create :: GameOptions -> IO Game
-create options = do g <- getStdGen
-                    return $ B.throwStones game (optNumStones options) g
-                    where players = take (optNumPlayers options) [Green ..]
-                          game = Game { pieces = Map.empty
-                                      , boardSize = optBoardSize options
-                                      , playerTypes = Map.fromList [(p, CLI.cli) | p <- players]
-                                      , currentPlayer = Green
-                                      , switches = Bimap.empty
-                                      }
 
 
 getCurrentPlayerType :: Game -> PlayerType
