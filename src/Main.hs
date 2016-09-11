@@ -34,7 +34,7 @@ instance Options MainOptions where
 
 create :: MainOptions -> IO (Either String Game)
 create options
-    | max (options&optWidth) (options&optHeight) > 24 = return $ Left "Cannot have more than 24 on either axis."
+    | max (options&optWidth) (options&optHeight) > 26 = return $ Left "Cannot have more than 26 on either axis."
     | otherwise = do g <- getStdGen
                      return $ B.throwStones game (optNumStones options) g
     where players = take (optNumPlayers options) [Green ..]
