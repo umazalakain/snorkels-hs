@@ -32,20 +32,23 @@ instance Options MainOptions where
             "Number of players"
 
 
-create :: MainOptions -> IO Game
-create options = do g <- getStdGen
-                    return $ B.throwStones game (optNumStones options) g
-                    where players = take (optNumPlayers options) [Green ..]
-                          game = Game { pieces = Map.empty
-                                      , boardSize = (optWidth options, optHeight options)
-                                      , playerTypes = Map.fromList [(p, CLI.cli) | p <- players]
-                                      , currentPlayer = Green
-                                      , switches = Bimap.empty
-                                      }
+create :: MainOptions -> Either String (IO Game)
+create options
+    | max (options&optWidth) (options&optHeight) > 24 = Left "Cannot have more than 24 on either axis."
+    | otherwise = Right $ do g <- getStdGen
+                             return $ B.throwStones game (optNumStones options) g
+    where players = take (optNumPlayers options) [Green ..]
+          game = Game { pieces = Map.empty
+                      , boardSize = (optWidth options, optHeight options)
+                      , playerTypes = Map.fromList [(p, CLI.cli) | p <- players]
+                      , currentPlayer = Green
+                      , switches = Bimap.empty
+                      }
 
 
 main :: IO ()
-main = runCommand $ \opts args -> do
-            game <- create opts
-            play game
-            return ()
+main = runCommand $ \opts args ->
+    case create opts of 
+      Left message -> print message
+      Right game -> do game >>= play
+                       return ()
