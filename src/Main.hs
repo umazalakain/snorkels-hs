@@ -15,16 +15,29 @@ import Snorkels.RandomAgent (randomAgent)
 import qualified Snorkels.Board as B
 
 
-data MainParser = MainParser { optNumStones :: Int
+data MainParser = MainParser { optPlayers :: [PlayerConfig]
+                             , optNumStones :: Int
                              , optWidth :: Int
                              , optHeight :: Int
-                             , optNumPlayers :: Int
                              } deriving (Eq)
+
+
+data PlayerConfig = Local | Computer
+    deriving (Eq, Show)
+
+
+localParser :: Parser PlayerConfig
+localParser = flag' Local (short 'l')
+
+
+computerParser :: Parser PlayerConfig
+computerParser = flag' Computer (short 'c')
 
 
 mainParser :: Parser MainParser
 mainParser = MainParser
-        <$> option auto
+        <$> many (localParser <|> computerParser)
+        <*> option auto
             ( long "stones"
            <> short 's'
            <> value 3
@@ -45,24 +58,23 @@ mainParser = MainParser
            <> metavar "HEIGHT"
            <> help "Height of the board"
             )
-        <*> option auto
-            ( long "players"
-           <> short 'p'
-           <> value 2
-           <> metavar "#PLAYERS"
-           <> help "Number of players"
-            )
+
+
+getPlayerType :: PlayerConfig -> PlayerType
+getPlayerType Local = cli
+getPlayerType Computer = randomAgent
 
 
 create :: MainParser -> IO (Either String Game)
 create options
     | max (options&optWidth) (options&optHeight) > 26 = return $ Left "Cannot have more than 26 on either axis."
+    | length (options&optPlayers) < 2 = return $ Left "Snorkels must be played by at least 2 players."
     | otherwise = do g <- getStdGen
-                     return $ B.throwStones game (optNumStones options) g
-    where players = take (optNumPlayers options) [Green ..]
+                     return $ B.throwStones game (options&optNumStones) g
+    where players = Map.fromList [(p, getPlayerType c) | (p, c) <- zip [Green ..] (options&optPlayers)]
           game = Game { pieces = Map.empty
                       , boardSize = (optWidth options, optHeight options)
-                      , playerTypes = Map.fromList [(Green, cli), (Purple, randomAgent)]
+                      , playerTypes = players
                       , currentPlayer = Green
                       , switches = Bimap.empty
                       }
