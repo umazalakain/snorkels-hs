@@ -1,4 +1,6 @@
-module Snorkels.Game ( move
+module Snorkels.Game ( PlayerType (..)
+                     , Game (..)
+                     , move
                      , switch
                      , quit
                      , getSurvivors
@@ -16,15 +18,38 @@ import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
-import Snorkels.Types
-import qualified Snorkels.Board as B
+import Snorkels.Board
+
+
+data PlayerType = PlayerType {
+    -- | Maybe print an error message and get a position to move to or a quit.
+      getMove :: Game -> Maybe String -> IO (Maybe Position)
+    -- | Maybe print an error message and get a player to switch to.
+    , getSwitch :: Game -> Maybe String -> IO Player
+    -- | Report the player about the winner of the game
+    , reportWinner :: Game -> Player -> IO ()
+    -- | Only one of the playertypes marked as local is notified about the
+    -- winner. FIXME: There must be a cleverer way of doing this.
+    , isLocal :: Bool
+}
+
+
+data Game = Game {
+      board :: Board
+    -- | List of 'Player's that didn't 'Quit'
+    , playerTypes :: Map.Map Player PlayerType
+    -- | 'Player' that plays next
+    , currentPlayer :: Player
+    -- | Map of what each player chooses to be when asked to switch
+    , switches :: Bimap.Bimap Player Player
+}
 
 
 getSurvivors :: Game -> [Player]
 getSurvivors game = case filter hasSurvived players of
                          [] -> [game&currentPlayer]
                          s -> s
-                    where hasSurvived = not . B.hasLost game
+                    where hasSurvived = not . hasLost (game&board)
                           players = Map.keys $ game&playerTypes
 
 
@@ -49,9 +74,9 @@ move pos game
     | not validPosition = Left "Cannot place a snorkel there."
     | not survivors = Left "No surviving players left."
     | otherwise = Right $ advancePlayer . putSnorkel $ game
-    where validPosition = elem pos $ B.freePositions game
+    where validPosition = elem pos $ freePositions $ game&board
           survivors = isJust $ getNextPlayer game
-          putSnorkel g = B.putPiece g pos $ Snorkel (game&currentPlayer)
+          putSnorkel g = g {board = putPiece (g&board) pos $ Snorkel (g&currentPlayer)}
 
 
 validSwitches :: Game -> [Player]

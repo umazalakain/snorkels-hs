@@ -8,11 +8,11 @@ import System.Random (getStdGen)
 
 import Options.Applicative
 
-import Snorkels.Types
 import Snorkels.Play
 import Snorkels.CLI (cli)
 import Snorkels.RandomAgent (randomAgent)
-import qualified Snorkels.Board as B
+import Snorkels.Board
+import Snorkels.Game
 
 
 data MainParser = MainParser { optPlayers :: [PlayerConfig]
@@ -70,10 +70,13 @@ create options
     | max (options&optWidth) (options&optHeight) > 26 = return $ Left "Cannot have more than 26 on either axis."
     | length (options&optPlayers) < 2 = return $ Left "Snorkels must be played by at least 2 players."
     | otherwise = do g <- getStdGen
-                     return $ B.throwStones game (options&optNumStones) g
+                     case throwStones (game&board) (options&optNumStones) g of
+                       Left message -> return $ Left message
+                       Right board -> return $ Right $ game { board = board}
     where players = Map.fromList [(p, getPlayerType c) | (p, c) <- zip [Green ..] (options&optPlayers)]
-          game = Game { pieces = Map.empty
-                      , boardSize = (optWidth options, optHeight options)
+          game = Game { board = Board { pieces = Map.empty
+                                      , size = (optWidth options, optHeight options)
+                                      }
                       , playerTypes = players
                       , currentPlayer = Green
                       , switches = Bimap.empty

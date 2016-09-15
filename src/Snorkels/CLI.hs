@@ -16,9 +16,8 @@ import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified System.Console.ANSI as ANSI
 
-import Snorkels.Types
-import qualified Snorkels.Board as B
-import qualified Snorkels.Game as G
+import Snorkels.Board
+import Snorkels.Game
 
 
 class Displayable a where
@@ -43,11 +42,11 @@ xCoords = ['A'..'Z']
 
 instance Displayable Game where
     display g = intercalate "\n" $ [headerCoords, header] ++ [line y | y <- [0..height-1]] ++ [footer]
-                where (width, height) = g&boardSize
+                where (width, height) = g&board&size
                       headerCoords = "   " ++ intersperse ' ' (take width xCoords)
                       header = "  ." ++ replicate (width*2-1) '_' ++ "."
                       footer = "  '" ++ replicate (width*2-1) '-' ++ "'"
-                      piece x y = display (B.getPiece g (x, y))
+                      piece x y = display (getPiece (g&board) (x, y))
                       line y = yCoords !! y : " |" ++ intercalate "." [piece x y | x <- [0..width-1]] ++ "|"
 
 
@@ -104,7 +103,7 @@ cliSwitch :: Game -> Maybe String -> IO Player
 cliSwitch game errorMessage = do putStrLn $ display game
                                  mapM_ putStrLn errorMessage
                                  putStr "Pick the color you want to switch to: "
-                                 print $ G.validSwitches game
+                                 print $ validSwitches game
                                  readParser switchParser game
 
 

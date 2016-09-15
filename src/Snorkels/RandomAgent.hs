@@ -10,20 +10,19 @@ import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import System.Random (getStdGen)
 
-import Snorkels.Types
-import qualified Snorkels.Board as B
-import qualified Snorkels.Game as G
+import Snorkels.Board
+import Snorkels.Game
 
 
 randomMove :: Game -> Maybe String -> IO (Maybe Position)
 randomMove game errorMessage = do g <- getStdGen
-                                  case B.shufflePositions (B.freePositions game) g of
+                                  case shufflePositions (freePositions $ game&board) g of
                                     [] -> return Nothing
                                     (x:xs) -> return $ Just x
 
 
 randomSwitch :: Game -> Maybe String -> IO Player
-randomSwitch game errorMessage = return $ head $ G.validSwitches game
+randomSwitch game errorMessage = return $ head $ validSwitches game
 
 
 randomReportWinner :: Game -> Player -> IO ()
