@@ -37,21 +37,21 @@ reportWinner (ComputerPlayer config) = randomReportWinner config
 
 
 playMove :: Game -> Maybe String -> IO Game
-playMove game errorMessage = do m <- getMove pt game errorMessage
+playMove game errorMessage = do let pt = getCurrentPlayerType game
+                                m <- getMove pt game errorMessage
                                 case m of
                                   Nothing -> return $ quit game
                                   Just pos -> case move pos game of
                                                 Left message -> playMove game $ Just message
                                                 Right game -> return game
-                             where pt = getCurrentPlayerType game
 
 
 playSwitch :: Game -> Maybe String -> IO Game
-playSwitch game errorMessage = do pos <- getSwitch pt game errorMessage
-                                  case switch pos game of
+playSwitch game errorMessage = do let pt = getCurrentPlayerType game
+                                  p <- getSwitch pt game errorMessage
+                                  case switch p game of
                                     Left message -> playSwitch game $ Just message
                                     Right game -> return game
-                               where pt = getCurrentPlayerType game
 
 
 playRound :: (Game -> Maybe String -> IO Game) -> Game -> IO Game
@@ -73,11 +73,11 @@ reportWinnerAround game = case getWinner game of
 
 
 play :: Game -> IO Game
-play game = do g <- playRound playMove game
-               -- The first moving round is over, ask for switches
-               g <- makeSwitches <$> playRound playSwitch g
-               -- Continue until finished
-               g <- iterateUntilM hasFinished (playRound playMove) g
-               -- The game has now finished
-               reportWinnerAround g
-               return g
+play g = do g <- playRound playMove g
+            -- The first moving round is over, ask for switches
+            g <- makeSwitches <$> playRound playSwitch g
+            -- Continue until finished
+            g <- iterateUntilM hasFinished (playRound playMove) g
+            -- The game has now finished
+            reportWinnerAround g
+            return g
