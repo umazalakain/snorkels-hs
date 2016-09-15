@@ -18,6 +18,7 @@ import Text.Parsec.Combinator (choice)
 import qualified Data.Bimap as Bimap
 import qualified Data.Map.Strict as Map
 import qualified System.Console.ANSI as ANSI
+import System.Environment (lookupEnv, setEnv)
 
 import Snorkels.Board
 import Snorkels.Game
@@ -111,5 +112,9 @@ localSwitch _ game errorMessage = do putStrLn $ display game
 
 
 localReportWinner :: LocalConfig -> Game -> Player -> IO ()
-localReportWinner _ game player = do putStrLn $ display game
-                                     putStrLn $ printf "%s has won!" $ show player
+localReportWinner _ game player = do reported <- lookupEnv "SNORKELS_WINNER_REPORTED"
+                                     case reported of
+                                       Just _ -> return ()
+                                       Nothing -> do putStrLn $ display game
+                                                     putStrLn $ printf "%s has won!" $ show player
+                                                     setEnv "SNORKELS_WINNER_REPORTED" "1"
