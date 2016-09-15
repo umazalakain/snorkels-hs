@@ -8,9 +8,9 @@ import System.Random (getStdGen)
 
 import Options.Applicative
 
-import Snorkels.Play
 import Snorkels.Board
 import Snorkels.Game
+import Snorkels.Actions
 
 
 data MainParser = MainParser { optPlayers :: [PlayerType]
