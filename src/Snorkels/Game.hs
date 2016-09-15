@@ -2,6 +2,7 @@ module Snorkels.Game ( LocalConfig (..)
                      , ComputerConfig (..)
                      , PlayerType (..)
                      , Game (..)
+                     , isLocal
                      , getSurvivors
                      , advancePlayer
                      , getNextPlayer
@@ -36,6 +37,11 @@ data Game = Game {
     -- | Map of what each player chooses to be when asked to switch
     , switches :: Bimap.Bimap Player Player
 }
+
+
+isLocal :: PlayerType -> Bool
+isLocal (LocalPlayer _) = True
+isLocal _ = False
 
 
 getSurvivors :: Game -> [Player]
