@@ -9,29 +9,23 @@ import System.Random (getStdGen)
 import Options.Applicative
 
 import Snorkels.Play
-import Snorkels.CLI (cli)
-import Snorkels.RandomAgent (randomAgent)
 import Snorkels.Board
 import Snorkels.Game
 
 
-data MainParser = MainParser { optPlayers :: [PlayerConfig]
+data MainParser = MainParser { optPlayers :: [PlayerType]
                              , optNumStones :: Int
                              , optWidth :: Int
                              , optHeight :: Int
                              } deriving (Eq)
 
 
-data PlayerConfig = Local | Computer
-    deriving (Eq, Show)
+localParser :: Parser PlayerType
+localParser = flag' (LocalPlayer LocalConfig) (short 'l')
 
 
-localParser :: Parser PlayerConfig
-localParser = flag' Local (short 'l')
-
-
-computerParser :: Parser PlayerConfig
-computerParser = flag' Computer (short 'c')
+computerParser :: Parser PlayerType
+computerParser = flag' (ComputerPlayer Random) (short 'c')
 
 
 mainParser :: Parser MainParser
@@ -60,11 +54,6 @@ mainParser = MainParser
             )
 
 
-getPlayerType :: PlayerConfig -> PlayerType
-getPlayerType Local = cli
-getPlayerType Computer = randomAgent
-
-
 create :: MainParser -> IO (Either String Game)
 create options
     | max (options&optWidth) (options&optHeight) > 26 = return $ Left "Cannot have more than 26 on either axis."
@@ -73,7 +62,7 @@ create options
                      case throwStones (game&board) (options&optNumStones) g of
                        Left message -> return $ Left message
                        Right board -> return $ Right $ game { board = board}
-    where players = Map.fromList [(p, getPlayerType c) | (p, c) <- zip [Green ..] (options&optPlayers)]
+    where players = Map.fromList $ zip [Green ..] (options&optPlayers)
           game = Game { board = Board { pieces = Map.empty
                                       , size = (optWidth options, optHeight options)
                                       }

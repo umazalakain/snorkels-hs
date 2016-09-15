@@ -7,6 +7,7 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe
 import Data.List (partition)
 
+import Snorkels.Actions
 import Snorkels.Game
 
 
@@ -41,11 +42,9 @@ playRound playFunc game = do g <- playFunc game Nothing
 
 reportWinnerAround :: Game -> IO ()
 reportWinnerAround game = case getWinner game of
-                            Just winner -> do mapM_ (reportToPT winner) nonlocals
-                                              maybe (return ()) (reportToPT winner) (listToMaybe locals)
+                            Just winner -> mapM_ (reportToPT winner) pts
                             Nothing -> return ()
                            where pts = Map.elems $ game&playerTypes
-                                 (locals, nonlocals) = partition isLocal pts
                                  reportToPT winner pt = reportWinner pt game winner
 
 

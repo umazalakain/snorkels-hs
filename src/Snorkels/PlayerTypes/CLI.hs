@@ -1,6 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Snorkels.CLI ( cli ) where
+module Snorkels.PlayerTypes.CLI ( cliMove
+                                , cliSwitch
+                                , cliReportWinner
+                                ) where
 
 import Control.Monad
 import Data.Char
@@ -93,27 +96,20 @@ readParser parser game = do putStr $ printf "%s: " $ show $ game&currentPlayer
                               Right result -> return result
 
 
-cliMove :: Game -> Maybe String -> IO (Maybe Position)
-cliMove game errorMessage = do putStrLn $ display game
-                               mapM_ putStrLn errorMessage
-                               readParser moveOrQuitParser game
-
-
-cliSwitch :: Game -> Maybe String -> IO Player
-cliSwitch game errorMessage = do putStrLn $ display game
+cliMove :: LocalConfig -> Game -> Maybe String -> IO (Maybe Position)
+cliMove _ game errorMessage = do putStrLn $ display game
                                  mapM_ putStrLn errorMessage
-                                 putStr "Pick the color you want to switch to: "
-                                 print $ validSwitches game
-                                 readParser switchParser game
+                                 readParser moveOrQuitParser game
 
 
-cliReportWinner :: Game -> Player -> IO ()
-cliReportWinner game player = do putStrLn $ display game
-                                 putStrLn $ printf "%s has won!" $ show player
+cliSwitch :: LocalConfig -> Game -> Maybe String -> IO Player
+cliSwitch _ game errorMessage = do putStrLn $ display game
+                                   mapM_ putStrLn errorMessage
+                                   putStr "Pick the color you want to switch to: "
+                                   print $ validSwitches game
+                                   readParser switchParser game
 
-cli :: PlayerType
-cli = PlayerType { getMove = cliMove
-                 , getSwitch = cliSwitch
-                 , reportWinner = cliReportWinner
-                 , isLocal = True
-                 }
+
+cliReportWinner :: LocalConfig -> Game -> Player -> IO ()
+cliReportWinner _ game player = do putStrLn $ display game
+                                   putStrLn $ printf "%s has won!" $ show player
