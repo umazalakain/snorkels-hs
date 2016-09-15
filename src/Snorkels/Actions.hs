@@ -17,22 +17,22 @@ import Data.List (partition)
 
 import Snorkels.Board
 import Snorkels.Game
-import Snorkels.PlayerTypes.CLI (cliMove, cliSwitch, cliReportWinner)
+import Snorkels.PlayerTypes.Local (localMove, localSwitch, localReportWinner)
 import Snorkels.PlayerTypes.RandomAgent (randomMove, randomSwitch, randomReportWinner)
 
 
 getMove :: PlayerType -> Game -> Maybe String -> IO (Maybe Position)
-getMove (LocalPlayer config) = cliMove config
+getMove (LocalPlayer config) = localMove config
 getMove (ComputerPlayer config) = randomMove config
 
 
 getSwitch :: PlayerType -> Game -> Maybe String -> IO Player
-getSwitch (LocalPlayer config) = cliSwitch config
+getSwitch (LocalPlayer config) = localSwitch config
 getSwitch (ComputerPlayer config) = randomSwitch config
 
 
 reportWinner :: PlayerType -> Game -> Player -> IO ()
-reportWinner (LocalPlayer config) = cliReportWinner config
+reportWinner (LocalPlayer config) = localReportWinner config
 reportWinner (ComputerPlayer config) = randomReportWinner config
 
 

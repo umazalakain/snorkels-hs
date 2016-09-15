@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Snorkels.PlayerTypes.CLI ( cliMove
-                                , cliSwitch
-                                , cliReportWinner
-                                ) where
+module Snorkels.PlayerTypes.Local ( localMove
+                                  , localSwitch
+                                  , localReportWinner
+                                  ) where
 
 import Control.Monad
 import Data.Char
@@ -96,20 +96,20 @@ readParser parser game = do putStr $ printf "%s: " $ show $ game&currentPlayer
                               Right result -> return result
 
 
-cliMove :: LocalConfig -> Game -> Maybe String -> IO (Maybe Position)
-cliMove _ game errorMessage = do putStrLn $ display game
-                                 mapM_ putStrLn errorMessage
-                                 readParser moveOrQuitParser game
-
-
-cliSwitch :: LocalConfig -> Game -> Maybe String -> IO Player
-cliSwitch _ game errorMessage = do putStrLn $ display game
+localMove :: LocalConfig -> Game -> Maybe String -> IO (Maybe Position)
+localMove _ game errorMessage = do putStrLn $ display game
                                    mapM_ putStrLn errorMessage
-                                   putStr "Pick the color you want to switch to: "
-                                   print $ validSwitches game
-                                   readParser switchParser game
+                                   readParser moveOrQuitParser game
 
 
-cliReportWinner :: LocalConfig -> Game -> Player -> IO ()
-cliReportWinner _ game player = do putStrLn $ display game
-                                   putStrLn $ printf "%s has won!" $ show player
+localSwitch :: LocalConfig -> Game -> Maybe String -> IO Player
+localSwitch _ game errorMessage = do putStrLn $ display game
+                                     mapM_ putStrLn errorMessage
+                                     putStr "Pick the color you want to switch to: "
+                                     print $ validSwitches game
+                                     readParser switchParser game
+
+
+localReportWinner :: LocalConfig -> Game -> Player -> IO ()
+localReportWinner _ game player = do putStrLn $ display game
+                                     putStrLn $ printf "%s has won!" $ show player
