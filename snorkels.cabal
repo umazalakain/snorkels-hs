@@ -69,6 +69,7 @@ executable snorkels
                        parsec >=3.1.11 && <3.1.12,
                        optparse-applicative >=0.13.0 && <0.13.1,
                        network >=2.6.2.1 && <2.6.2.2,
+                       stm >=2.4.4.1 && <2.4.4.2,
                        aeson >=0.8.0.2 && <0.8.0.3
 
   -- Directories containing source files.
@@ -104,6 +105,7 @@ library
                        parsec >=3.1.11 && <3.1.12,
                        optparse-applicative >=0.13.0 && <0.13.1,
                        network >=2.6.2.1 && <2.6.2.2,
+                       stm >=2.4.4.1 && <2.4.4.2,
                        aeson >=0.8.0.2 && <0.8.0.3
 
   -- Directories containing source files.

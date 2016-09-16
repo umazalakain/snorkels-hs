@@ -45,7 +45,7 @@ type Position = (Int, Int)
 
 -- | Some player's pieces' color
 data Snorkel = Green | Purple | Red | Yellow | Cyan
-    deriving (Show, Eq, Ord, Enum, Read)
+    deriving (Show, Eq, Ord, Enum)
 
 
 -- | Each player has a distinctive color
@@ -71,7 +71,7 @@ data Board = Board {
       pieces :: Map.Map Position Piece
     -- | Width and height limits of the board
     , size :: (Int, Int)
-}
+} deriving (Eq)
 
 
 -- This is just a shortcut for (isJust . getPlayer)
