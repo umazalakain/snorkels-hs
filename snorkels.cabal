@@ -60,6 +60,7 @@ executable snorkels
 
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.8 && <4.9,
+                       bytestring >=0.10.6.0 && <0.10.6.1,
                        monad-loops >=0.4 && <0.5,
                        random >=1.1 && <1.2,
                        containers >=0.5 && <0.6,
@@ -67,7 +68,8 @@ executable snorkels
                        bimap >=0.3.2 && <0.3.3,
                        parsec >=3.1.11 && <3.1.12,
                        optparse-applicative >=0.13.0 && <0.13.1,
-                       network >=2.6.2.1 && <2.6.2.2
+                       network >=2.6.2.1 && <2.6.2.2,
+                       aeson >=0.8.0.2 && <0.8.0.3
 
   -- Directories containing source files.
   hs-source-dirs:      src
@@ -81,8 +83,8 @@ library
   exposed-modules:     Snorkels.Board,
                        Snorkels.Game,
                        Snorkels.Actions,
+                       Snorkels.Broadcaster,
                        Snorkels.PlayerTypes.Local,
-                       Snorkels.PlayerTypes.Network,
                        Snorkels.PlayerTypes.RandomAgent
 
   -- Modules included in this library but not exported.
@@ -93,6 +95,7 @@ library
 
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.8 && <4.9,
+                       bytestring >=0.10.6.0 && <0.10.6.1,
                        monad-loops >=0.4 && <0.5,
                        random >=1.1 && <1.2,
                        containers >=0.5 && <0.6,
@@ -100,7 +103,8 @@ library
                        bimap >=0.3.2 && <0.3.3,
                        parsec >=3.1.11 && <3.1.12,
                        optparse-applicative >=0.13.0 && <0.13.1,
-                       network >=2.6.2.1 && <2.6.2.2
+                       network >=2.6.2.1 && <2.6.2.2,
+                       aeson >=0.8.0.2 && <0.8.0.3
 
   -- Directories containing source files.
   hs-source-dirs:      src
