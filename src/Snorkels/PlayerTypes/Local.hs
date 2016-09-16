@@ -84,7 +84,7 @@ switchParser :: Parser Player
 switchParser = do spaces
                   player <- choice $ map string $ Bimap.keysR playerRepr
                   spaces
-                  return $ playerRepr Bimap.!> player 
+                  return $ playerRepr Bimap.!> player
 
 
 readParser :: Parser a -> Game -> IO a
@@ -104,11 +104,14 @@ localMove _ game errorMessage = do putStrLn $ display game
 
 
 localSwitch :: LocalConfig -> Game -> Maybe String -> IO Player
-localSwitch _ game errorMessage = do putStrLn $ display game
-                                     mapM_ putStrLn errorMessage
-                                     putStr "Pick the color you want to switch to: "
-                                     print $ validSwitches game
-                                     readParser switchParser game
+localSwitch _ game errorMessage =
+    case (validSwitches game) of
+        [x]     -> return x
+        valid   -> do putStrLn $ display game
+                      mapM_ putStrLn errorMessage
+                      putStr "Pick the color you want to switch to: "
+                      print valid
+                      readParser switchParser game
 
 
 localReportWinner :: LocalConfig -> Game -> Player -> IO ()
