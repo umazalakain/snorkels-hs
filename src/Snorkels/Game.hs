@@ -2,7 +2,6 @@ module Snorkels.Game ( LocalConfig (..)
                      , ComputerConfig (..)
                      , PlayerType (..)
                      , Game (..)
-                     , isLocal
                      , getSurvivors
                      , getNextPlayer
                      , advancePlayer
@@ -12,7 +11,9 @@ module Snorkels.Game ( LocalConfig (..)
                      , validSwitches
                      , makeSwitches
                      , quit
+                     , isValidMove
                      , move
+                     , isValidSwitch
                      , switch
                      ) where
 
@@ -44,11 +45,6 @@ data Game = Game {
 }
 
 
-isLocal :: PlayerType -> Bool
-isLocal (LocalPlayer _) = True
-isLocal _ = False
-
-
 getSurvivors :: Game -> [Player]
 getSurvivors game = case filter hasSurvived players of
                          [] -> [game&currentPlayer]
@@ -73,10 +69,6 @@ getCurrentPlayerType :: Game -> PlayerType
 getCurrentPlayerType game = (game&playerTypes) Map.! (game&currentPlayer)
 
 
-validSwitches :: Game -> [Player]
-validSwitches game = getSurvivors game \\ Bimap.keysR (game&switches)
-
-
 getWinner :: Game -> Maybe Player
 getWinner game = case getSurvivors game of
                       [x] -> Just x
@@ -91,22 +83,26 @@ quit :: Game -> Game
 quit game = (advancePlayer game) {playerTypes = Map.delete (game&currentPlayer) (game&playerTypes)}
 
 
-move :: Position -> Game -> Either String Game
-move pos game
-    | not validPosition = Left "Cannot place a snorkel there."
-    | not survivors = Left "No surviving players left."
-    | otherwise = Right $ advancePlayer . putSnorkel $ game
-    where validPosition = elem pos $ freePositions $ game&board
-          survivors = isJust $ getNextPlayer game
-          putSnorkel g = g {board = putPiece (g&board) pos $ Snorkel (g&currentPlayer)}
+isValidMove :: Position -> Game -> Bool
+isValidMove pos game = elem pos $ freePositions $ game&board
 
 
-switch :: Player -> Game -> Either String Game
-switch player game
-    | player `notElem` validSwitches game = Left "Cannot switch to such color."
-    | otherwise = Right $ nextPlayer . putSwitch $ game
+move :: Position -> Game -> Game
+move pos = advancePlayer . putSnorkel pos
+    where putSnorkel pos g = g {board = putPiece (g&board) pos $ Snorkel (g&currentPlayer)}
+
+
+validSwitches :: Game -> [Player]
+validSwitches game = getSurvivors game \\ Bimap.keysR (game&switches)
+
+
+isValidSwitch :: Player -> Game -> Bool
+isValidSwitch player game = player `elem` validSwitches game
+
+
+switch :: Player -> Game -> Game
+switch player = advancePlayer . putSwitch
     where putSwitch g = g {switches = Bimap.insert (g&currentPlayer) player (g&switches)}
-          nextPlayer g = g {currentPlayer = fromJust (getNextPlayer g)}
 
 
 makeSwitches :: Game -> Game

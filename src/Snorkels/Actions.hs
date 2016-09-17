@@ -1,8 +1,6 @@
 module Snorkels.Actions ( getMove
                         , getSwitch
                         , reportWinner
-                        , playMove
-                        , playSwitch
                         , playRound
                         , reportWinnerAround
                         , play
@@ -21,14 +19,41 @@ import Snorkels.PlayerTypes.Local (localMove, localSwitch, localReportWinner)
 import Snorkels.PlayerTypes.RandomAgent (randomMove, randomSwitch, randomReportWinner)
 
 
-getMove :: PlayerType -> Game -> Maybe String -> IO (Maybe Position)
-getMove (LocalPlayer config) = localMove config
-getMove (ComputerPlayer config) = randomMove config
+type Action = Either Player (Maybe Position)
 
 
-getSwitch :: PlayerType -> Game -> Maybe String -> IO Player
-getSwitch (LocalPlayer config) = localSwitch config
-getSwitch (ComputerPlayer config) = randomSwitch config
+doAction :: Action -> Game -> Game
+doAction (Left player) = switch player
+doAction (Right Nothing) = quit
+doAction (Right (Just pos)) = move pos
+
+
+getMove' :: PlayerType -> Game -> Maybe String -> IO (Maybe Position)
+getMove' (LocalPlayer config) = localMove config
+getMove' (ComputerPlayer config) = randomMove config
+
+
+getMove :: Game -> Maybe String -> IO Action
+getMove game err = do let pt = getCurrentPlayerType game
+                      action <- getMove' pt game err
+                      case action of
+                        Nothing -> return $ Right Nothing  -- Player has quit
+                        Just pos -> if isValidMove pos game
+                                       then return $ Right $ Just pos -- Player has correctly moved
+                                       else getMove game (Just "Cannot place a snorkel there.")
+
+
+getSwitch' :: PlayerType -> Game -> Maybe String -> IO Player
+getSwitch' (LocalPlayer config) = localSwitch config
+getSwitch' (ComputerPlayer config) = randomSwitch config
+
+
+getSwitch :: Game -> Maybe String -> IO Action
+getSwitch game err = do let pt = getCurrentPlayerType game
+                        player <- getSwitch' pt game err
+                        if isValidSwitch player game
+                           then return $ Left player
+                           else getSwitch game (Just "Cannot switch to such color.")
 
 
 reportWinner :: PlayerType -> Game -> Player -> IO ()
@@ -36,29 +61,12 @@ reportWinner (LocalPlayer config) = localReportWinner config
 reportWinner (ComputerPlayer config) = randomReportWinner config
 
 
-playMove :: Game -> Maybe String -> IO Game
-playMove game errorMessage = do let pt = getCurrentPlayerType game
-                                m <- getMove pt game errorMessage
-                                case m of
-                                  Nothing -> return $ quit game
-                                  Just pos -> case move pos game of
-                                                Left message -> playMove game $ Just message
-                                                Right game -> return game
-
-
-playSwitch :: Game -> Maybe String -> IO Game
-playSwitch game errorMessage = do let pt = getCurrentPlayerType game
-                                  p <- getSwitch pt game errorMessage
-                                  case switch p game of
-                                    Left message -> playSwitch game $ Just message
-                                    Right game -> return game
-
-
-playRound :: (Game -> Maybe String -> IO Game) -> Game -> IO Game
-playRound playFunc game = do g <- playFunc game Nothing
-                             if hasFinished g || ((game&currentPlayer) > (g&currentPlayer))
-                             then return g
-                             else playRound playFunc g
+playRound :: (Game -> Maybe String -> IO Action) -> Game -> IO Game
+playRound playFunc g = do action <- playFunc g Nothing
+                          let t = doAction action g
+                          if hasFinished t || ((g&currentPlayer) > (t&currentPlayer))
+                          then return t
+                          else playRound playFunc t
 
 
 reportWinnerAround :: Game -> IO ()
@@ -71,11 +79,11 @@ reportWinnerAround game = case getWinner game of
 
 
 play :: Game -> IO Game
-play g = do g <- playRound playMove g
+play g = do g <- playRound getMove g
             -- The first moving round is over, ask for switches
-            g <- makeSwitches <$> playRound playSwitch g
+            g <- makeSwitches <$> playRound getSwitch g
             -- Continue until finished
-            g <- iterateUntilM hasFinished (playRound playMove) g
+            g <- iterateUntilM hasFinished (playRound getMove) g
             -- The game has now finished
             reportWinnerAround g
             return g
