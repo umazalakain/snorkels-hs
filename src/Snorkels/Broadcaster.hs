@@ -1,10 +1,12 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Snorkels.Broadcaster ( Snapshot
+module Snorkels.Broadcaster ( TChan
+                            , Action
+                            , Snapshot
                             , createChannel
+                            , sendSnapshot
                             , broadcast
-                            , test
                             ) where
 
 
@@ -14,6 +16,7 @@ import Control.Concurrent.STM.TChan
 import Control.Monad
 import Control.Monad.STM
 import Data.ByteString.Lazy
+import Data.Function
 import System.IO
 
 import Data.Aeson
@@ -25,7 +28,8 @@ import Snorkels.Board
 import Snorkels.Game
 
 
-type Snapshot = (Player, Either (Maybe Position) Player, Board, Bimap.Bimap Player Player)
+type Action = Either Player (Maybe Position)
+type Snapshot = (Player, Action, Board, Bimap.Bimap Player Player)
 $(deriveJSON defaultOptions ''Snorkel)
 $(deriveJSON defaultOptions ''Board)
 $(deriveJSON defaultOptions ''Piece)
@@ -35,6 +39,11 @@ $(deriveJSON defaultOptions ''Bimap.Bimap)
 
 createChannel :: IO (TChan Snapshot)
 createChannel = newTChanIO
+
+
+sendSnapshot :: Player -> Action -> Game -> TChan Snapshot -> IO ()
+sendSnapshot player action game chan = atomically $ writeTChan chan snap
+    where snap = (player, action, game&board, game&switches)
 
 
 broadcast :: TChan Snapshot -> IO ThreadId
@@ -56,15 +65,3 @@ dump handle clientChan = do read <- atomically $ tryReadTChan clientChan
                               Just snapshot -> do hPut handle $ encode snapshot
                                                   hFlush handle
                                                   dump handle clientChan
-
-
-test = do chan <- createChannel
-          broadcast chan
-          let s = (Green, Left Nothing, Board (Map.fromList []) (10, 10), Bimap.fromList [])
-          let m = (Purple, Left Nothing, Board (Map.fromList []) (10, 10), Bimap.fromList [])
-          let p = (Yellow, Left Nothing, Board (Map.fromList []) (10, 10), Bimap.fromList [])
-          let q = (Red, Left Nothing, Board (Map.fromList []) (10, 10), Bimap.fromList [])
-          atomically $ writeTChan chan s
-          atomically $ writeTChan chan m
-          atomically $ writeTChan chan p
-          atomically $ writeTChan chan q

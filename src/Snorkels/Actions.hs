@@ -14,12 +14,10 @@ import Data.Maybe
 import Data.List (partition)
 
 import Snorkels.Board
+import Snorkels.Broadcaster
 import Snorkels.Game
 import Snorkels.PlayerTypes.Local (localMove, localSwitch, localReportWinner)
 import Snorkels.PlayerTypes.RandomAgent (randomMove, randomSwitch, randomReportWinner)
-
-
-type Action = Either Player (Maybe Position)
 
 
 doAction :: Action -> Game -> Game
@@ -61,12 +59,13 @@ reportWinner (LocalPlayer config) = localReportWinner config
 reportWinner (ComputerPlayer config) = randomReportWinner config
 
 
-playRound :: (Game -> Maybe String -> IO Action) -> Game -> IO Game
-playRound playFunc g = do action <- playFunc g Nothing
-                          let t = doAction action g
-                          if hasFinished t || ((g&currentPlayer) > (t&currentPlayer))
-                          then return t
-                          else playRound playFunc t
+playRound :: TChan Snapshot -> (Game -> Maybe String -> IO Action) -> Game -> IO Game
+playRound chan playFunc g = do action <- playFunc g Nothing
+                               let t = doAction action g
+                               sendSnapshot (g&currentPlayer) action t chan
+                               if hasFinished t || ((g&currentPlayer) > (t&currentPlayer))
+                               then return t
+                               else playRound chan playFunc t
 
 
 reportWinnerAround :: Game -> IO ()
@@ -79,11 +78,14 @@ reportWinnerAround game = case getWinner game of
 
 
 play :: Game -> IO Game
-play g = do g <- playRound getMove g
+play g = do chan <- createChannel
+            broadcast chan
+            let playBroadcastedRound = playRound chan
+            g <- playBroadcastedRound getMove g
             -- The first moving round is over, ask for switches
-            g <- makeSwitches <$> playRound getSwitch g
+            g <- makeSwitches <$> playBroadcastedRound getSwitch g
             -- Continue until finished
-            g <- iterateUntilM hasFinished (playRound getMove) g
+            g <- iterateUntilM hasFinished (playBroadcastedRound getMove) g
             -- The game has now finished
             reportWinnerAround g
             return g
